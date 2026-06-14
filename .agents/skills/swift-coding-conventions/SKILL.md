@@ -177,15 +177,18 @@ public protocol LocationManagerDelegate: Identifiable where ID == UUID {}
 
 ### Braces for functions
 
+- Function opening braces follow `.swift-format` default Apple style: same line as the signature.
+- Do not manually restyle function braces to a next-line form that the formatter cannot enforce.
+
 ```swift
-// CORRECT: Opening brace on new line, closing brace on new line
-    func updateSubscriptions()
-    {
+// CORRECT: Opening brace on same line, closing brace on new line
+    func updateSubscriptions() {
         // Implementation
     }
 
-// INCORRECT: Opening brace on same line, closing brace on new line
-    func updateSubscriptions() {
+// INCORRECT: Opening brace on new line, closing brace on new line
+    func updateSubscriptions()
+    {
         // Implementation
     }
 ```
@@ -194,20 +197,18 @@ public protocol LocationManagerDelegate: Identifiable where ID == UUID {}
 
 ```swift
 // CORRECT: Opening brace on same line, closing brace on new line
-public class ProcessManager {  // Opening brace on new line
-    func updateSubscriptions()
-    {
+public class ProcessManager {
+    func updateSubscriptions() {
         // Implementation
     }
 
     // Declarations and methods here
 }
 
-// INCORRECT: Opening brace on now line, closing brace on new line
+// INCORRECT: Opening brace on new line, closing brace on new line
 public class ProcessManager
 {
-    func updateSubscriptions()
-    {
+    func updateSubscriptions() {
         // Implementation
     }
 
@@ -218,9 +219,8 @@ public class ProcessManager
     for subscription in subscriptions {
         subscription.update(timeout: updateInterval)
     }
-}
 
-// INCORRECT: Opening brace on same line, closing brace on new line
+// INCORRECT: Opening brace on new line, closing brace on new line
     for subscription in subscriptions
     {
         subscription.update(timeout: updateInterval)
@@ -276,8 +276,7 @@ do {
 
 ```swift
 // CORRECT: Keep long function signatures on one line if possible
-public func dataWithRetry(from url: URL, retryCount: Int = 3, retryInterval: TimeInterval = 1.0, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse)
-{
+public func dataWithRetry(from url: URL, retryCount: Int = 3, retryInterval: TimeInterval = 1.0, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
     // Implementation
 }
 
@@ -326,14 +325,12 @@ func add(s: any ProcessSubscriber, t: TimeInterval) -> Void {}
 
 ```swift
 // CORRECT: Default parameters at end
-public func dataWithRetry(from url: URL, retryCount: Int = 3, retryInterval: TimeInterval = 1.0, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse)
-{
+public func dataWithRetry(from url: URL, retryCount: Int = 3, retryInterval: TimeInterval = 1.0, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
     // Implementation
 }
 
 // INCORRECT:
-public func dataWithRetry(from url: URL? = nil, retryCount: Int, retryInterval: TimeInterval = 1.0, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse)
-{
+public func dataWithRetry(from url: URL? = nil, retryCount: Int, retryInterval: TimeInterval = 1.0, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
     // Implementation
 }
 ```
@@ -342,14 +339,12 @@ public func dataWithRetry(from url: URL? = nil, retryCount: Int, retryInterval: 
 
 ```swift
 // CORRECT: Explicit Void return type
-public func updateLocation(location: Location) -> Void
-{
+public func updateLocation(location: Location) -> Void {
     // Implementation
 }
 
 // INCORRECT: Omit return type for Void
-public func updateLocation(location: Location)
-{
+public func updateLocation(location: Location) {
     // Implementation
 }
 ```
@@ -360,24 +355,21 @@ public func updateLocation(location: Location)
 
 ```swift
 // CORRECT: Standard if statement
-public func updateLocation(location: Location) -> Void
-{
+public func updateLocation(location: Location) -> Void {
     if location != nil {
         refreshSubscriptions()
     }
 }
 
 // CORRECT: If-let for optional binding when the value is used
-public func updateLocation(location: Location) -> Void
-{
+public func updateLocation(location: Location) -> Void {
     if let location = self.location {
         delegate.locationManager(didUpdateLocation: location)
     }
 }
 
 // CORRECT: Explicit nil check when only presence matters
-public func updateLocation(location: Location) -> Void
-{
+public func updateLocation(location: Location) -> Void {
     if self.location != nil {
         refreshSubscriptions()
     }
@@ -433,8 +425,7 @@ guard let data = data,
 }
 
 // CORRECT: Guard for early return only
-public func updateLocation(location: Location) -> Void
-{
+public func updateLocation(location: Location) -> Void {
     // No function code before guard
 
     guard let location = self.location else {
@@ -446,8 +437,7 @@ public func updateLocation(location: Location) -> Void
 }
 
 // INCORRECT: Guard with code before it (not allowed)
-public func updateLocation(location: Location) -> Void
-{
+public func updateLocation(location: Location) -> Void {
     // Function code before guard (not allowed)
     let timeSinceLastUpdate = Date.now.timeIntervalSince(lastUpdate)
     if timeSinceLastUpdate < Date().timeIntervalSince(lastUpdate) {
@@ -542,15 +532,13 @@ public class ProcessManager {
 }
 
 extension ProcessManager: LocationManagerDelegate {
-    public func locationManager(didUpdateLocation location: Location) -> Void
-    {
+    public func locationManager(didUpdateLocation location: Location) -> Void {
         // Implementation
     }
 }
 
 extension ProcessManager {
-    public func add(subscriber: any ProcessSubscriber, timeout: TimeInterval) -> Void
-    {
+    public func add(subscriber: any ProcessSubscriber, timeout: TimeInterval) -> Void {
         // Implementation
     }
 }
@@ -573,8 +561,7 @@ public struct ProcessValue<T: Dimension>: Identifiable {
 
 ```swift
 // CORRECT: Generic function with constraints
-func measure<T: Dimension>(_ value: Double, unit: T) -> Measurement<T>
-{
+func measure<T: Dimension>(_ value: Double, unit: T) -> Measurement<T> {
     return Measurement(value: value, unit: unit)
 }
 ```
@@ -596,8 +583,7 @@ protocol Container {
 // CORRECT: Using 'any' for existential types
 private var subscribers: [UUID: any ProcessSubscriber] = [:]
 
-public func add(subscriber: any ProcessSubscriber, timeout: TimeInterval) -> Void
-{
+public func add(subscriber: any ProcessSubscriber, timeout: TimeInterval) -> Void {
     subscribers[subscriber.id] = subscriber
 }
 ```
@@ -625,8 +611,7 @@ self.location = location
 /// A simple and fast logging facility with support for different log levels and detailed timestamps.
 public class Trace {
     /// Represents different log levels
-    public enum Level: String
-    {
+    public enum Level: String {
         case debug = "DEBUG"
         case info = "INFO"
     }
@@ -637,8 +622,7 @@ public class Trace {
     ///   - showColors: Whether to use ANSI colors in console output
     ///   - dateFormat: Format string for timestamps (default: "yyyy-MM-dd HH:mm:ss.SSS")
     ///   - logFile: Path to file for writing logs (optional)
-    public init(minimumLevel: Level = .debug, showColors: Bool = true, dateFormat: String = "yyyy-MM-dd HH:mm:ss.SSS", logFile: String? = nil)
-    {
+    public init(minimumLevel: Level = .debug, showColors: Bool = true, dateFormat: String = "yyyy-MM-dd HH:mm:ss.SSS", logFile: String? = nil) {
         // Implementation
     }
 }
@@ -665,13 +649,11 @@ public class ProcessManager {
     private let locationManager = LocationManager()
     private var location: Location?
 
-    private init()
-    {
+    private init() {
         self.locationManager.delegate = self
     }
 
-    public func refreshSubscriptions() -> Void
-    {
+    public func refreshSubscriptions() -> Void {
         // Implementation
     }
 }
@@ -683,12 +665,10 @@ public class ProcessManager {
     private let locationManager = LocationManager()
     private var location: Location?
 
-    private init()
-    {
+    private init() {
         self.locationManager.delegate = self
     }
-    public func refreshSubscriptions() -> Void
-    {
+    public func refreshSubscriptions() -> Void {
         // Implementation
     }
 }

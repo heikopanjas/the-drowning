@@ -265,12 +265,13 @@ instead of an explicit nil check followed by force unwrap.
 Place `else` and `catch` on their own line after the previous block's closing
 brace, matching `.swift-format`'s `lineBreakBeforeControlFlowKeywords: true`
 setting.
-Use `.swift-format` for mechanical formatting and lint rules it supports.
-Use the `swift-coding-conventions` skill for conventions that `swift-format`
-cannot represent, including function opening braces on the next line, explicit
-`-> Void` return types, explicit Boolean comparisons, nested `if` conditions
-instead of combined conditions, and one primary type per file. Keep
-`NoVoidReturnOnFunctionSignature` disabled so explicit `-> Void` is allowed.
+Use `.swift-format` for mechanical formatting and lint rules it supports,
+including function opening braces on the same line as the signature. Use the
+`swift-coding-conventions` skill for conventions that `swift-format` cannot
+represent, including explicit `-> Void` return types, explicit Boolean
+comparisons, nested `if` conditions instead of combined conditions, and one
+primary type per file. Keep `NoVoidReturnOnFunctionSignature` disabled so
+explicit `-> Void` is allowed.
 
 <!-- {integration} -->
 
@@ -292,6 +293,9 @@ Automatically bump the project version after every code change and include it in
 
 ### 2026-06-14
 
+- Aligned function brace guidance with `.swift-format` same-line Apple style
+- Reasoning: the formatter cannot enforce next-line function braces, so manual
+  Allman-style requirements should not fight automatic formatting
 - Clarified in the Swift style guide when to use explicit nil comparisons versus
   optional binding, including SwiftUI `if let value { use(value) }` cases
 - Reasoning: style reviews should not treat the absence of `== nil` as a
