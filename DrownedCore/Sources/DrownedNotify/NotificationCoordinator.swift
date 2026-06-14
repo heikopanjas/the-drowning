@@ -10,7 +10,7 @@ public struct UserNotificationPoster: NotificationPosting {
     public init() {}
 
     public func add(_ request: UNNotificationRequest) async throws -> Void {
-        try await UNUserNotificationCenter.current().add(request)
+        return try await UNUserNotificationCenter.current().add(request)
     }
 }
 
@@ -24,7 +24,9 @@ public struct NotificationCoordinator: Sendable {
     public func post(_ outcome: SyncOutcome, notifyRegions: Set<Region>) async throws -> Void {
         guard outcome.suppressNotifications == false else { return }
 
-        let relevant = outcome.newIncidents.filter { notifyRegions.contains($0.region) }
+        let relevant = outcome.newIncidents.filter { incident in
+            return notifyRegions.contains(incident.region)
+        }
         guard relevant.isEmpty == false else { return }
 
         let grouped = Dictionary(grouping: relevant, by: \.region)
@@ -56,6 +58,6 @@ public struct NotificationCoordinator: Sendable {
 
 public enum NotificationAuthorization {
     public static func request() async throws -> Bool {
-        try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
+        return try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
     }
 }

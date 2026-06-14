@@ -269,9 +269,17 @@ Use `.swift-format` for mechanical formatting and lint rules it supports,
 including function opening braces on the same line as the signature. Use the
 `swift-coding-conventions` skill for conventions that `swift-format` cannot
 represent, including explicit `-> Void` return types, explicit Boolean
-comparisons, nested `if` conditions instead of combined conditions, and one
-primary type per file. Keep `NoVoidReturnOnFunctionSignature` disabled so
-explicit `-> Void` is allowed.
+comparisons, explicit return statements for non-void functions, methods,
+computed properties, and multi-line value-producing closures, nested `if`
+conditions instead of combined conditions, and one primary type per file. Keep
+`NoVoidReturnOnFunctionSignature` disabled so explicit `-> Void` is allowed.
+Concise single-line functional closures, including `map`, `filter`,
+`compactMap`, `sorted`, `reduce`, `forEach`, `first(where:)`, and SwiftUI
+builders, may use Swift shorthand style and should not be rewritten into loops
+solely to avoid implicit returns.
+Keep `.swift-format`'s `UseEarlyExits` disabled because it can conflict with the
+style guide's guard-placement guidance. Treat `UseWhereClausesInForLoops`
+suggestions as optional when a `where` clause would obscure nested control flow.
 
 <!-- {integration} -->
 
@@ -293,6 +301,26 @@ Automatically bump the project version after every code change and include it in
 
 ### 2026-06-14
 
+- Disabled `.swift-format`'s `UseEarlyExits` rule and documented the potential
+  `UseWhereClausesInForLoops` tension in the Swift style guide
+- Reasoning: formatter-backed rewrites must not override the style guide's
+  preference for clear guard placement and nested control flow
+- Disabled `.swift-format`'s `ReplaceForEachWithForLoop` rule
+- Reasoning: the formatter must match the documented Swift style convention
+  that concise single-line functional closures, including `forEach`, are
+  allowed when they stay readable
+- Clarified that concise single-line functional closures may keep Swift
+  shorthand style, while multi-line value-producing closures still require
+  explicit `return`
+- Reasoning: the implicit-return rule should make non-void control flow clear
+  without making readable functional chaining noisier
+- Added the Swift style rule that non-void functions, methods, computed
+  properties, and multi-line value-producing closures must use explicit
+  `return` statements, and applied it
+  across the app, LaunchAgent helper, DrownedCore sources, and package tests
+- Bumped `MARKETING_VERSION` to `1.6.23` and `CURRENT_PROJECT_VERSION` to `44`
+- Reasoning: explicit returns keep value-producing control flow visually
+  consistent with the rest of the manual Swift style guide
 - Refactored `DrownedCore/Sources` to match the Swift coding conventions:
   removed URL force unwraps, applied explicit Boolean/nil checks, split combined
   guards and switch cases, added explicit `-> Void`, and split shared types into

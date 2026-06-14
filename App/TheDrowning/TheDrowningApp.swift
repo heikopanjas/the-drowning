@@ -8,7 +8,7 @@ struct TheDrowningApp: App {
     @State private var launchError: String?
 
     var body: some Scene {
-        WindowGroup("The Drowning") {
+        return WindowGroup("The Drowning") {
             Root()
                 .task {
                     registerAgent()
@@ -32,7 +32,7 @@ private struct Root: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        Group {
+        return Group {
             if let store {
                 TheDrowningRootView(store: store)
             }

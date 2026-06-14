@@ -4,7 +4,7 @@ import GRDB
 
 extension IncidentFilter {
     public func fetchAll(_ db: Database) throws -> [Incident] {
-        try Incident.fetchAll(db, sql: sql.orderByDateDescending, arguments: sql.arguments)
+        return try Incident.fetchAll(db, sql: sql.orderByDateDescending, arguments: sql.arguments)
     }
 
     public func fetchMapAnnotations(_ db: Database, limit: Int, bounds: CoordinateBounds?) throws -> [Incident] {
@@ -23,14 +23,16 @@ extension IncidentFilter {
 
 extension IncidentFilter {
     var sql: IncidentSQL {
-        sql(bounds: nil)
+        return sql(bounds: nil)
     }
 
     func sql(bounds: CoordinateBounds?) -> IncidentSQL {
         var predicates: [String] = []
         var arguments = StatementArguments()
 
-        let concreteRegions = regions.filter { $0 != .unknown }
+        let concreteRegions = regions.filter { region in
+            return region != .unknown
+        }
         if concreteRegions.isEmpty == false {
             predicates.append("rawRegion IN \(regionPlaceholders(concreteRegions.count))")
             concreteRegions.sorted().forEach { arguments += [$0.rawValue] }
@@ -82,7 +84,7 @@ extension IncidentFilter {
     }
 
     private func regionPlaceholders(_ count: Int) -> String {
-        "(" + Array(repeating: "?", count: count).joined(separator: ", ") + ")"
+        return "(" + Array(repeating: "?", count: count).joined(separator: ", ") + ")"
     }
 }
 
@@ -91,17 +93,17 @@ struct IncidentSQL {
     let arguments: StatementArguments
 
     var orderByDateDescending: String {
-        "SELECT * FROM incident\(whereClause) ORDER BY reportedDate DESC, webID ASC, contentHash ASC"
+        return "SELECT * FROM incident\(whereClause) ORDER BY reportedDate DESC, webID ASC, contentHash ASC"
     }
 
     var orderByDeadliest: String {
-        """
-        SELECT * FROM incident\(whereClause)
-        ORDER BY COALESCE(totalDeadAndMissing, numberDead, 0) DESC, reportedDate DESC, webID ASC, contentHash ASC
-        """
+        return """
+            SELECT * FROM incident\(whereClause)
+            ORDER BY COALESCE(totalDeadAndMissing, numberDead, 0) DESC, reportedDate DESC, webID ASC, contentHash ASC
+            """
     }
 
     var count: String {
-        "SELECT COUNT(*) FROM incident\(whereClause)"
+        return "SELECT COUNT(*) FROM incident\(whereClause)"
     }
 }

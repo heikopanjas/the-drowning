@@ -14,7 +14,7 @@ public struct Coordinate: Sendable, Hashable, Codable {
         guard trimmed.isEmpty == false else { return nil }
 
         let parts = trimmed.split(separator: ",", omittingEmptySubsequences: false).map {
-            $0.trimmingCharacters(in: .whitespacesAndNewlines)
+            return $0.trimmingCharacters(in: .whitespacesAndNewlines)
         }
         guard parts.count == 2 else { return nil }
         guard let latitude = Double(parts[0]) else { return nil }

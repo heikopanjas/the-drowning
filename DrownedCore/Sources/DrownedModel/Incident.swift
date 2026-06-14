@@ -1,7 +1,7 @@
 import Foundation
 
 public struct Incident: Sendable, Identifiable, Hashable, Codable {
-    public var id: String { "\(webID)#\(contentHash)" }
+    public var id: String { return "\(webID)#\(contentHash)" }
 
     public let webID: String
     public let region: Region

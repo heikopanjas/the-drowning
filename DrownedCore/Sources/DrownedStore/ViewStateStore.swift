@@ -22,14 +22,14 @@ public struct ViewStateStore {
     }
 
     public func loadFilter() -> IncidentFilter? {
-        defaults.data(forKey: filterKey).flatMap {
-            try? JSONDecoder().decode(IncidentFilter.self, from: $0)
+        return defaults.data(forKey: filterKey).flatMap {
+            return try? JSONDecoder().decode(IncidentFilter.self, from: $0)
         }
     }
 
     public func loadCamera() -> CameraState? {
-        defaults.data(forKey: cameraKey).flatMap {
-            try? JSONDecoder().decode(CameraState.self, from: $0)
+        return defaults.data(forKey: cameraKey).flatMap {
+            return try? JSONDecoder().decode(CameraState.self, from: $0)
         }
     }
 }

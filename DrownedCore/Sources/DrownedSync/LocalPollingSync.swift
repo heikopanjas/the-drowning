@@ -46,7 +46,12 @@ public actor LocalPollingSync: SyncEngine {
         try await store.replaceAll(incidents)
         try await store.markSeen(incomingIDs)
 
-        let newIncidents = suppressNotifications ? [] : incidents.filter { newIDs.contains($0.webID) }
+        let newIncidents =
+            suppressNotifications
+            ? []
+            : incidents.filter { incident in
+                return newIDs.contains(incident.webID)
+            }
         return SyncOutcome(
             newWebIDs: suppressNotifications ? [] : newIDs,
             newIncidents: newIncidents,

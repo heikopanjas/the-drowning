@@ -3,18 +3,18 @@ import PackageDescription
 
 let package = Package(
     name: "DrownedCore",
-    platforms: [.macOS(.v14)],          // add .iOS(.v17) when the iOS shell lands
+    platforms: [.macOS(.v14)],  // add .iOS(.v17) when the iOS shell lands
     products: [
-        .library(name: "DrownedModel",  targets: ["DrownedModel"]),
-        .library(name: "DrownedStore",  targets: ["DrownedStore"]),
-        .library(name: "DrownedSync",   targets: ["DrownedSync"]),
+        .library(name: "DrownedModel", targets: ["DrownedModel"]),
+        .library(name: "DrownedStore", targets: ["DrownedStore"]),
+        .library(name: "DrownedSync", targets: ["DrownedSync"]),
         .library(name: "DrownedNotify", targets: ["DrownedNotify"]),
-        .library(name: "DrownedUI",     targets: ["DrownedUI"]),
+        .library(name: "DrownedUI", targets: ["DrownedUI"])
     ],
     dependencies: [
         // Plain GRDB (no SQLCipher — data is public, plan §2.3).
         // GRDB 7 brings Swift 6 / strict-concurrency support. Verify latest tag.
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0")
     ],
     targets: [
         .target(name: "DrownedModel"),
@@ -22,10 +22,10 @@ let package = Package(
             name: "DrownedStore",
             dependencies: [
                 "DrownedModel",
-                .product(name: "GRDB", package: "GRDB.swift"),
+                .product(name: "GRDB", package: "GRDB.swift")
             ]
         ),
-        .target(name: "DrownedSync",   dependencies: ["DrownedModel", "DrownedStore"]),
+        .target(name: "DrownedSync", dependencies: ["DrownedModel", "DrownedStore"]),
         .target(name: "DrownedNotify", dependencies: ["DrownedModel"]),
         .target(
             name: "DrownedUI",
@@ -33,7 +33,7 @@ let package = Package(
                 "DrownedModel",
                 "DrownedStore",
                 "DrownedSync",
-                .product(name: "GRDB", package: "GRDB.swift"),
+                .product(name: "GRDB", package: "GRDB.swift")
             ]
         ),
 
@@ -43,7 +43,7 @@ let package = Package(
             name: "DrownedSyncTests",
             dependencies: ["DrownedSync"],
             resources: [.copy("Fixtures")]
-        ),
+        )
     ],
     swiftLanguageModes: [.v6]
 )

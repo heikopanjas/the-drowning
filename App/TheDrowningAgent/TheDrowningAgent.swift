@@ -32,7 +32,9 @@ private enum SettingsReader {
     static func notifyRegions() -> Set<Region> {
         let defaults = UserDefaults(suiteName: AppGroup.identifier) ?? .standard
         let values = defaults.stringArray(forKey: DrownedDefaultsKey.notifyRegions) ?? []
-        let regions = values.map(Region.init(source:)).filter { $0 != .unknown }
+        let regions = values.map(Region.init(source:)).filter { region in
+            return region != .unknown
+        }
         return regions.isEmpty ? [.mediterranean] : Set(regions)
     }
 }

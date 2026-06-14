@@ -5,7 +5,7 @@ final class IncidentAnnotation: NSObject, MKAnnotation {
     let incidentID: String
     let coordinate: CLLocationCoordinate2D
 
-    var title: String? { nil }
+    var title: String? { return nil }
 
     init?(_ incident: Incident, displayCoordinate: CLLocationCoordinate2D? = nil) {
         guard let coordinate = incident.coordinate else { return nil }
@@ -90,7 +90,9 @@ final class IncidentClusterAnnotationView: MKAnnotationView {
 
     private func updateImage() -> Void {
         guard let cluster = annotation as? MKClusterAnnotation else { return }
-        let incidentCount = cluster.memberAnnotations.compactMap { $0 as? IncidentAnnotation }.count
+        let incidentCount = cluster.memberAnnotations.compactMap { annotation in
+            return annotation as? IncidentAnnotation
+        }.count
         image = MapAnnotationImage.circle(diameter: 32, text: incidentCount.formatted())
         centerOffset = CGPoint(x: 0, y: -16)
         collisionMode = .circle

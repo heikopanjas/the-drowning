@@ -21,12 +21,14 @@ public struct TheDrowningRootView: View {
     public var body: some View {
         @Bindable var model = model
 
-        MapScreen(
+        return MapScreen(
             model: model,
             searchModel: searchModel,
             isSyncing: isSyncing,
             syncError: syncError,
-            fetchIncident: { id in try await store.fetchIncident(id: id) },
+            fetchIncident: { id in
+                return try await store.fetchIncident(id: id)
+            },
             sync: sync
         )
         .frame(minWidth: 980, minHeight: 680)
@@ -61,10 +63,14 @@ private struct FilterPopoverContent: View {
     @State private var expandedSections: Set<FilterSection> = [.regions]
 
     var body: some View {
-        ScrollView {
+        return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 filterSection(.regions, title: "Regions") {
-                    ForEach(Region.allCases.filter { $0 != .unknown }.sorted()) { region in
+                    ForEach(
+                        Region.allCases.filter { region in
+                            return region != .unknown
+                        }.sorted()
+                    ) { region in
                         filterToggle(region.rawValue, isOn: binding(for: region))
                     }
                 }
@@ -112,7 +118,7 @@ private struct FilterPopoverContent: View {
         title: String,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
-        DisclosureGroup(isExpanded: expansionBinding(for: section)) {
+        return DisclosureGroup(isExpanded: expansionBinding(for: section)) {
             VStack(alignment: .leading, spacing: 6) {
                 content()
             }
@@ -130,7 +136,7 @@ private struct FilterPopoverContent: View {
     }
 
     private func filterToggle(_ title: String, isOn: Binding<Bool>) -> some View {
-        HStack(alignment: .center, spacing: 12) {
+        return HStack(alignment: .center, spacing: 12) {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.primary)
@@ -148,15 +154,15 @@ private struct FilterPopoverContent: View {
     }
 
     private func emptyFilterText(_ text: String) -> some View {
-        Text(text)
+        return Text(text)
             .font(.caption)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func expansionBinding(for section: FilterSection) -> Binding<Bool> {
-        Binding {
-            expandedSections.contains(section)
+        return Binding {
+            return expandedSections.contains(section)
         } set: { isExpanded in
             if isExpanded == true {
                 expandedSections.insert(section)
@@ -168,8 +174,8 @@ private struct FilterPopoverContent: View {
     }
 
     private func binding(for region: Region) -> Binding<Bool> {
-        Binding {
-            model.filter.regions.contains(region)
+        return Binding {
+            return model.filter.regions.contains(region)
         } set: { isSelected in
             guard model.filter.regions.contains(region) != isSelected else {
                 return
@@ -182,8 +188,8 @@ private struct FilterPopoverContent: View {
     }
 
     private func setBinding(_ value: String, keyPath: WritableKeyPath<IncidentFilter, Set<String>>) -> Binding<Bool> {
-        Binding {
-            model.filter[keyPath: keyPath].contains(value)
+        return Binding {
+            return model.filter[keyPath: keyPath].contains(value)
         } set: { isSelected in
             if isSelected == true {
                 model.filter[keyPath: keyPath].insert(value)
@@ -220,7 +226,7 @@ private struct MapScreen: View {
     @AppStorage(DrownedDefaultsKey.mapStyle) private var mapStyleRawValue = MapStyle.standard.rawValue
 
     var body: some View {
-        VStack(spacing: 0) {
+        return VStack(spacing: 0) {
             toolbar
             ZStack(alignment: .top) {
                 IncidentMapView(
@@ -330,7 +336,7 @@ private struct MapScreen: View {
     private static let toolbarControlSize: CGFloat = 28
 
     private func toolbarIcon(_ systemName: String) -> some View {
-        Image(systemName: systemName)
+        return Image(systemName: systemName)
             .font(.system(size: 18, weight: .regular))
             .foregroundStyle(.secondary)
             .frame(width: Self.toolbarControlSize, height: Self.toolbarControlSize)
@@ -338,7 +344,7 @@ private struct MapScreen: View {
     }
 
     private var locationPreview: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(searchModel.completions.prefix(8))) { completion in
                 Button {
                     searchModel.select(completion)
@@ -387,7 +393,7 @@ private struct MapScreen: View {
     }
 
     private var statusLabels: some View {
-        HStack(spacing: 10) {
+        return HStack(spacing: 10) {
             Text(mapIncidentCountLabel)
             Text(filterIncidentCountLabel)
         }
@@ -403,11 +409,11 @@ private struct MapScreen: View {
     }
 
     private var filterIncidentCountLabel: String {
-        "Filters: \(model.filteredIncidentCount.formatted()) total"
+        return "Filters: \(model.filteredIncidentCount.formatted()) total"
     }
 
     private var mapStyle: MapStyle {
-        MapStyle(rawValue: mapStyleRawValue) ?? .standard
+        return MapStyle(rawValue: mapStyleRawValue) ?? .standard
     }
 
     private func toggleMapStyle() -> Void {
@@ -415,7 +421,7 @@ private struct MapScreen: View {
     }
 
     private var attribution: some View {
-        HStack(spacing: 4) {
+        return HStack(spacing: 4) {
             Link("Data: IOM Missing Migrants Project", destination: Self.iomURL)
             Text("CC BY 4.0. Figures are minimum estimates; locations are approximate.")
         }
@@ -432,7 +438,7 @@ private struct SearchField: View {
     @Bindable var searchModel: SearchModel
 
     var body: some View {
-        MacSearchField(
+        return MacSearchField(
             text: $searchModel.query,
             placeholder: "Search location",
             onTextChange: searchModel.updateQuery
@@ -488,7 +494,7 @@ private struct MacSearchField: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text, onTextChange: onTextChange)
+        return Coordinator(text: $text, onTextChange: onTextChange)
     }
 
     final class Coordinator: NSObject, NSSearchFieldDelegate {

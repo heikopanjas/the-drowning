@@ -31,7 +31,7 @@ public actor IncidentStore {
     }
 
     public func seenWebIDs() throws -> Set<String> {
-        try dbPool.read { db in
+        return try dbPool.read { db in
             let ids = try String.fetchAll(db, sql: "SELECT webID FROM seen_web_id")
             return Set(ids)
         }
@@ -50,15 +50,15 @@ public actor IncidentStore {
     }
 
     public func fetchIncidents(filter: IncidentFilter) throws -> [Incident] {
-        try dbPool.read { db in
-            try filter.fetchAll(db)
+        return try dbPool.read { db in
+            return try filter.fetchAll(db)
         }
     }
 
     public func fetchIncident(id: String) throws -> Incident? {
         guard let identity = IncidentIdentity(id: id) else { return nil }
         return try dbPool.read { db in
-            try Incident.fetchOne(
+            return try Incident.fetchOne(
                 db,
                 sql: "SELECT * FROM incident WHERE webID = ? AND contentHash = ? LIMIT 1",
                 arguments: [identity.webID, identity.contentHash]
@@ -67,13 +67,13 @@ public actor IncidentStore {
     }
 
     public func count(filter: IncidentFilter = IncidentFilter(regions: [], mappableOnly: false)) throws -> Int {
-        try dbPool.read { db in
-            try filter.count(db)
+        return try dbPool.read { db in
+            return try filter.count(db)
         }
     }
 
     public func availableRegions() throws -> [Region] {
-        try dbPool.read { db in
+        return try dbPool.read { db in
             let rawRegions = try String.fetchAll(
                 db,
                 sql: "SELECT DISTINCT rawRegion FROM incident ORDER BY rawRegion ASC"
@@ -83,7 +83,7 @@ public actor IncidentStore {
     }
 
     public func availableRoutes(regions: Set<Region>) throws -> [String] {
-        try dbPool.read { db in
+        return try dbPool.read { db in
             var sql = "SELECT DISTINCT migrationRoute FROM incident WHERE migrationRoute IS NOT NULL AND migrationRoute != ''"
             var arguments = StatementArguments()
             if regions.isEmpty == false {
@@ -96,7 +96,7 @@ public actor IncidentStore {
     }
 
     public func availableCauses(regions: Set<Region>) throws -> [String] {
-        try dbPool.read { db in
+        return try dbPool.read { db in
             var sql = "SELECT DISTINCT causeOfDeath FROM incident WHERE causeOfDeath != ''"
             var arguments = StatementArguments()
             if regions.isEmpty == false {

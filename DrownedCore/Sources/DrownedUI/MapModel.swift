@@ -29,11 +29,11 @@ public final class MapModel {
     private static let mapAnnotationLimit = 1_000
 
     public var isAnnotationLimited: Bool {
-        matchingIncidentCount > incidents.count
+        return matchingIncidentCount > incidents.count
     }
 
     var queryKey: MapQueryKey {
-        MapQueryKey(filter: filter, bounds: visibleBounds)
+        return MapQueryKey(filter: filter, bounds: visibleBounds)
     }
 
     public init(
@@ -61,7 +61,7 @@ public final class MapModel {
             let bounds = visibleBounds ?? CoordinateBounds(region: filter.fallbackRegion)
             let mapAnnotationLimit = Self.mapAnnotationLimit
             let observation = ValueObservation.tracking { db in
-                try IncidentSnapshot(
+                return try IncidentSnapshot(
                     incidents: filter.fetchMapAnnotations(db, limit: mapAnnotationLimit, bounds: bounds),
                     visibleCount: filter.count(db, bounds: bounds),
                     filteredCount: filter.count(db)
@@ -84,7 +84,7 @@ public final class MapModel {
         }
     }
 
-    public func refreshMetadata() async throws {
+    public func refreshMetadata() async throws -> Void {
         routes = try await store.availableRoutes(regions: filter.regions)
         causes = try await store.availableCauses(regions: filter.regions)
     }
@@ -160,19 +160,19 @@ extension CoordinateBounds {
     }
 
     fileprivate var centerLatitude: Double {
-        (minimumLatitude + maximumLatitude) / 2
+        return (minimumLatitude + maximumLatitude) / 2
     }
 
     fileprivate var centerLongitude: Double {
-        (minimumLongitude + maximumLongitude) / 2
+        return (minimumLongitude + maximumLongitude) / 2
     }
 
     fileprivate var latitudeSpan: Double {
-        maximumLatitude - minimumLatitude
+        return maximumLatitude - minimumLatitude
     }
 
     fileprivate var longitudeSpan: Double {
-        maximumLongitude - minimumLongitude
+        return maximumLongitude - minimumLongitude
     }
 }
 
@@ -180,7 +180,7 @@ extension CoordinateBounds {
     init?(incidents: [Incident], trimsOutliers: Bool = false) {
         let coordinates = incidents.compactMap(\.coordinate)
         guard let first = coordinates.first else { return nil }
-        guard trimsOutliers else {
+        guard trimsOutliers == true else {
             let initial = (
                 minimumLatitude: first.latitude,
                 maximumLatitude: first.latitude,
@@ -188,7 +188,7 @@ extension CoordinateBounds {
                 maximumLongitude: first.longitude
             )
             let bounds = coordinates.dropFirst().reduce(initial) { bounds, coordinate in
-                (
+                return (
                     minimumLatitude: min(bounds.minimumLatitude, coordinate.latitude),
                     maximumLatitude: max(bounds.maximumLatitude, coordinate.latitude),
                     minimumLongitude: min(bounds.minimumLongitude, coordinate.longitude),

@@ -14,8 +14,12 @@ public struct IncidentCSVParser: Sendable {
         guard let header = rows.first else { return [] }
 
         let columns = Dictionary(
-            header.enumerated().map { (Self.normalizedHeader($0.element), $0.offset) },
-            uniquingKeysWith: { first, _ in first }
+            header.enumerated().map { item in
+                return (Self.normalizedHeader(item.element), item.offset)
+            },
+            uniquingKeysWith: { first, _ in
+                return first
+            }
         )
         try [CSVColumn.webID, .region, .reportedDate].forEach { column in
             guard column.index(in: columns) != nil else {
@@ -27,7 +31,10 @@ public struct IncidentCSVParser: Sendable {
         var incidents: [Incident] = []
         incidents.reserveCapacity(max(rows.count - 1, 0))
 
-        for row in rows.dropFirst() where row.allSatisfy({ $0.isEmpty == true }) == false {
+        for row in rows.dropFirst()
+        where row.allSatisfy({ field in
+            return field.isEmpty == true
+        }) == false {
             let fields = CSVIncidentFields(row: row, columns: columns)
             let incident = try fields.incident()
             let rowFingerprint = fields.rowFingerprint
@@ -39,7 +46,8 @@ public struct IncidentCSVParser: Sendable {
     }
 
     private static func normalizedHeader(_ header: String) -> String {
-        header
+        return
+            header
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\u{feff}", with: "")
             .lowercased()
@@ -56,19 +64,19 @@ public enum IncidentCSVParserError: Error, Equatable, Sendable, CustomStringConv
     public var description: String {
         switch self {
             case .invalidUTF8:
-                "CSV data is not valid UTF-8."
+                return "CSV data is not valid UTF-8."
             case .missingColumn(let column):
-                "CSV is missing required column '\(column)'."
+                return "CSV is missing required column '\(column)'."
             case .invalidDate(let value):
-                "CSV contains invalid reported_date '\(value)'."
+                return "CSV contains invalid reported_date '\(value)'."
             case .invalidInteger(let column, let value):
-                "CSV contains invalid integer '\(value)' in column '\(column)'."
+                return "CSV contains invalid integer '\(value)' in column '\(column)'."
             case .malformedCSV(let context):
-                context.isEmpty ? "CSV is malformed." : "CSV is malformed: \(context)"
+                return context.isEmpty ? "CSV is malformed." : "CSV is malformed: \(context)"
         }
     }
 
-    public var errorDescription: String? { description }
+    public var errorDescription: String? { return description }
 }
 
 private enum CSVColumn: CaseIterable {
@@ -97,58 +105,60 @@ private enum CSVColumn: CaseIterable {
     var aliases: [String] {
         switch self {
             case .webID:
-                ["web_id", "Main ID", "Incident ID"]
+                return ["web_id", "Main ID", "Incident ID"]
             case .region:
-                ["region", "Region of Incident", "Region"]
+                return ["region", "Region of Incident", "Region"]
             case .reportedDate:
-                ["reported_date", "Incident Date"]
+                return ["reported_date", "Incident Date"]
             case .numberDead:
-                ["number_dead", "Number Dead", "Number of Dead"]
+                return ["number_dead", "Number Dead", "Number of Dead"]
             case .numberMissing:
-                ["number_missing", "Minimum Estimated Number of Missing"]
+                return ["number_missing", "Minimum Estimated Number of Missing"]
             case .totalDeadAndMissing:
-                ["total_dead_and_missing", "Total Number of Dead and Missing"]
+                return ["total_dead_and_missing", "Total Number of Dead and Missing"]
             case .numberOfSurvivors:
-                ["number_of_survivors", "Number of Survivors", "Number Survivors"]
+                return ["number_of_survivors", "Number of Survivors", "Number Survivors"]
             case .numberOfFemale:
-                ["number_of_female", "Number of Females", "Number Females"]
+                return ["number_of_female", "Number of Females", "Number Females"]
             case .numberOfMale:
-                ["number_of_male", "Number of Males", "Number Males"]
+                return ["number_of_male", "Number of Males", "Number Males"]
             case .numberOfChildren:
-                ["number_of_children", "Number of Children", "Number Children"]
+                return ["number_of_children", "Number of Children", "Number Children"]
             case .causeDeath:
-                ["cause_death", "Cause of Death"]
+                return ["cause_death", "Cause of Death"]
             case .countryOfIncident:
-                ["country_of_incident", "Country of Incident"]
+                return ["country_of_incident", "Country of Incident"]
             case .locationDescription:
-                ["location_description", "Location of Incident", "Location of death"]
+                return ["location_description", "Location of Incident", "Location of death"]
             case .unsdGeographicGrouping:
-                ["unsd_geographic_grouping", "UNSD Geographical Grouping"]
+                return ["unsd_geographic_grouping", "UNSD Geographical Grouping"]
             case .locationCoordinates:
-                ["location_coodinates", "Coordinates"]
+                return ["location_coodinates", "Coordinates"]
             case .migrationRoute:
-                ["migration_route", "Migration Route", "Migration route"]
+                return ["migration_route", "Migration Route", "Migration route"]
             case .informationSource:
-                ["information_source", "Information Source"]
+                return ["information_source", "Information Source"]
             case .url:
-                ["url", "URL"]
+                return ["url", "URL"]
             case .sourceQuality:
-                ["source_quality", "Source Quality"]
+                return ["source_quality", "Source Quality"]
             case .regionOrigin:
-                ["region_origin", "Region of Origin", "Region Origin"]
+                return ["region_origin", "Region of Origin", "Region Origin"]
             case .countryOrigin:
-                ["country_origin", "Country of Origin", "Country Origin"]
+                return ["country_origin", "Country of Origin", "Country Origin"]
         }
     }
 
     func index(in columns: [String: Int]) -> Int? {
-        aliases.lazy
+        return aliases.lazy
             .map {
-                $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                return $0.trimmingCharacters(in: .whitespacesAndNewlines)
                     .replacingOccurrences(of: "\u{feff}", with: "")
                     .lowercased()
             }
-            .compactMap { columns[$0] }
+            .compactMap { key in
+                return columns[key]
+            }
             .first
     }
 }
@@ -158,8 +168,10 @@ private struct CSVIncidentFields {
     let columns: [String: Int]
 
     var rowFingerprint: String {
-        CSVColumn.allCases
-            .map { value($0) }
+        return CSVColumn.allCases
+            .map { column in
+                return value(column)
+            }
             .joined(separator: "\u{1F}")
     }
 
@@ -167,8 +179,12 @@ private struct CSVIncidentFields {
         let rawRegion = trimmed(.region)
         let coordinate = Coordinate(field: trimmed(.locationCoordinates))
         let contentFields = CSVColumn.allCases
-            .filter { $0 != .webID }
-            .map { value($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { column in
+                return column != .webID
+            }
+            .map { column in
+                return value(column).trimmingCharacters(in: .whitespacesAndNewlines)
+            }
         let numberDead = try optionalInt(.numberDead)
         let numberMissing = try optionalInt(.numberMissing)
 
@@ -216,7 +232,7 @@ private struct CSVIncidentFields {
     }
 
     private func trimmed(_ column: CSVColumn) -> String {
-        value(column).trimmingCharacters(in: .whitespacesAndNewlines)
+        return value(column).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func optionalString(_ column: CSVColumn) -> String? {
@@ -227,7 +243,11 @@ private struct CSVIncidentFields {
     private func optionalInt(_ column: CSVColumn) throws -> Int? {
         let value = trimmed(column)
         guard value.isEmpty == false else { return nil }
-        if column == .sourceQuality, let firstValue = value.split(separator: ",").first.flatMap({ Int($0) }) {
+        if column == .sourceQuality,
+            let firstValue = value.split(separator: ",").first.flatMap({ value in
+                return Int(value)
+            })
+        {
             return firstValue
         }
         if column == .sourceQuality {
@@ -305,7 +325,14 @@ private struct RFC4180Parser {
                     field.removeAll(keepingCapacity: true)
                     justClosedQuote = false
                     index = nextIndex
-                case "\n", "\r\n":
+                case "\n":
+                    row.append(field)
+                    rows.append(row)
+                    row.removeAll(keepingCapacity: true)
+                    field.removeAll(keepingCapacity: true)
+                    justClosedQuote = false
+                    index = nextIndex
+                case "\r\n":
                     row.append(field)
                     rows.append(row)
                     row.removeAll(keepingCapacity: true)
@@ -394,6 +421,6 @@ extension DateFormatter {
 
 extension String {
     fileprivate func strippingByteOrderMark() -> String {
-        hasPrefix("\u{feff}") ? String(dropFirst()) : self
+        return hasPrefix("\u{feff}") ? String(dropFirst()) : self
     }
 }

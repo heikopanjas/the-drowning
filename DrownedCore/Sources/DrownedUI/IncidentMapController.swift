@@ -80,12 +80,20 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
                 shouldFrameInitialAnnotations = true
             }
         }
-        let incoming = Set(incidents.map(\.id))
+        let incoming = Set(
+            incidents.map { incident in
+                return incident.id
+            })
         let displayCoordinates = displayCoordinates(for: incidents)
-        incidentDetails = Dictionary(uniqueKeysWithValues: incidents.map { ($0.id, $0) })
+        incidentDetails = Dictionary(
+            uniqueKeysWithValues: incidents.map { incident in
+                return (incident.id, incident)
+            })
         guard incoming != Set(shown.keys) else { return }
 
-        let toRemove = shown.keys.filter { incoming.contains($0) == false }
+        let toRemove = shown.keys.filter { id in
+            return incoming.contains(id) == false
+        }
         for id in toRemove {
             if let annotation = shown.removeValue(forKey: id) {
                 mapView.removeAnnotation(annotation)
@@ -163,7 +171,7 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
                 guard Task.isCancelled == false else { return }
                 guard
                     mapView?.selectedAnnotations.contains(where: { selected in
-                        (selected as? IncidentAnnotation)?.incidentID == annotation.incidentID
+                        return (selected as? IncidentAnnotation)?.incidentID == annotation.incidentID
                     }) == true
                 else {
                     return
@@ -220,7 +228,7 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
     }
 
     private func clusteringMode(for mapView: MKMapView) -> ClusteringMode {
-        mapView.camera.centerCoordinateDistance < 50_000 ? .individual : .grouped
+        return mapView.camera.centerCoordinateDistance < 50_000 ? .individual : .grouped
     }
 
     private func clusteringIdentifier(for annotation: IncidentAnnotation, mode: ClusteringMode) -> String {
@@ -235,7 +243,7 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
     private func mapRect(for bounds: CoordinateBounds) -> MKMapRect {
         let mapPoints = bounds.rectangleCoordinates.map(MKMapPoint.init)
         let baseRect = mapPoints.reduce(MKMapRect.null) { rect, point in
-            rect.union(MKMapRect(x: point.x, y: point.y, width: 1, height: 1))
+            return rect.union(MKMapRect(x: point.x, y: point.y, width: 1, height: 1))
         }
         let minimumSize: Double = 20_000
         let horizontalInset = max(0, minimumSize - baseRect.width) / 2
@@ -245,12 +253,14 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
 
     private func displayCoordinates(for incidents: [Incident]) -> [String: CLLocationCoordinate2D] {
         let groups = Dictionary(grouping: incidents) { incident in
-            DisplayCoordinateKey(incident.coordinate)
+            return DisplayCoordinateKey(incident.coordinate)
         }
 
         var coordinates: [String: CLLocationCoordinate2D] = [:]
         for (_, incidents) in groups {
-            let incidents = incidents.sorted { $0.id < $1.id }
+            let incidents = incidents.sorted { lhs, rhs in
+                return lhs.id < rhs.id
+            }
             guard incidents.count > 1 else { continue }
             for (index, incident) in incidents.enumerated() {
                 guard let coordinate = incident.coordinate else { continue }
@@ -301,7 +311,7 @@ private struct DisplayCoordinateKey: Hashable {
 
 extension CoordinateBounds {
     fileprivate var rectangleCoordinates: [CLLocationCoordinate2D] {
-        [
+        return [
             CLLocationCoordinate2D(latitude: minimumLatitude, longitude: minimumLongitude),
             CLLocationCoordinate2D(latitude: minimumLatitude, longitude: maximumLongitude),
             CLLocationCoordinate2D(latitude: maximumLatitude, longitude: maximumLongitude),
@@ -327,7 +337,7 @@ extension CameraState {
     }
 
     var mkCamera: MKMapCamera {
-        MKMapCamera(
+        return MKMapCamera(
             lookingAtCenter: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
             fromDistance: distance,
             pitch: 0,
@@ -409,11 +419,11 @@ private final class IncidentCalloutView: NSView {
     }
 
     override var intrinsicContentSize: NSSize {
-        Self.calloutSize
+        return Self.calloutSize
     }
 
     override var fittingSize: NSSize {
-        Self.calloutSize
+        return Self.calloutSize
     }
 
     @available(*, unavailable)
@@ -451,7 +461,12 @@ private final class IncidentCalloutView: NSView {
     private func addFullDetails(for incident: Incident) -> Void {
         addRow("Reported", value: incident.reportedDate.formatted(date: .abbreviated, time: .omitted))
         addRow("Cause of death", value: incident.causeOfDeath)
-        addRow("Total dead and missing", value: incident.totalDeadAndMissing.map { $0.formatted() } ?? "Unknown")
+        addRow(
+            "Total dead and missing",
+            value: incident.totalDeadAndMissing.map { value in
+                return value.formatted()
+            } ?? "Unknown"
+        )
         addOptionalNumberRow("Dead", value: incident.numberDead)
         addOptionalNumberRow("Missing", value: incident.numberMissing)
         addOptionalNumberRow("Survivors", value: incident.numberOfSurvivors)
@@ -572,7 +587,7 @@ private final class IncidentCalloutView: NSView {
     }
 
     private static func linkLabel(_ url: URL) -> NSTextField {
-        LinkTextField(url: url, preferredWidth: valueColumnWidth)
+        return LinkTextField(url: url, preferredWidth: valueColumnWidth)
     }
 
     private static func urls(in text: String) -> [URL] {
@@ -604,13 +619,13 @@ private final class IncidentCalloutView: NSView {
     }
 
     private static var calloutSize: NSSize {
-        NSSize(width: calloutWidth, height: calloutHeight)
+        return NSSize(width: calloutWidth, height: calloutHeight)
     }
 }
 
 private final class FlippedStackView: NSStackView {
     override var isFlipped: Bool {
-        true
+        return true
     }
 }
 

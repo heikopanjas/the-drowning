@@ -105,6 +105,29 @@ if store != nil {
 - **NEVER** return `nil` to indicate the absence of data. **ALWAYS** return empty arrays or dictionaries from functions instead.
 - **NEVER** return optional arrays or dictionaries to indicate the absence of data. **ALWAYS** return empty arrays or dictionaries from functions instead.
 
+### No implicit returns
+
+- **NEVER** use implicit returns for functions, methods, classes, structs, enums, computed properties, and protocols. **ALWAYS** use explicit return values.
+- Multi-line value-producing closures **MUST** use explicit `return`.
+- Concise single-line functional closures are allowed to use Swift shorthand style when passed directly to APIs such as `map`, `filter`, `compactMap`, `sorted`, `reduce`, `forEach`, `first(where:)`, `contains(where:)`, or SwiftUI builders.
+- Do not rewrite clear single-line functional closures into loops solely to avoid implicit returns.
+
+```swift
+// CORRECT: concise single-line functional style
+let regions = values.map(Region.init(source:)).filter { $0 != .unknown }
+concreteRegions.sorted().forEach { arguments += [$0.rawValue] }
+
+// CORRECT: multi-line value-producing closure uses explicit return
+let regions = values.filter { value in
+    return value != .unknown
+}
+
+// INCORRECT: multi-line value-producing closure with implicit return
+let regions = values.filter { value in
+    value != .unknown
+}
+```
+
 ## File Organization
 
 ### Single Responsibility
@@ -394,6 +417,15 @@ if needsUpdate == true && location != nil {
 }
 
 ```
+
+### For Loops
+
+- `.swift-format` currently has `UseWhereClausesInForLoops` enabled.
+- Treat formatter suggestions that add `where` clauses as optional when the
+  condition would become complex or would obscure the style-guide preference for
+  clear, nested control flow.
+- Keep simple `for ... where ...` loops when they remain easier to read than an
+  inner `if`.
 
 ### Guard Statements
 

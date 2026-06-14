@@ -39,7 +39,7 @@ public struct IncidentMapView: NSViewRepresentable {
     }
 
     public func makeCoordinator() -> Coordinator {
-        IncidentMapController()
+        return IncidentMapController()
     }
 
     public func makeNSView(context: Context) -> MKMapView {

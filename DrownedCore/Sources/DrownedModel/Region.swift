@@ -20,13 +20,13 @@ public enum Region: String, Sendable, CaseIterable, Codable, Identifiable, Compa
     case oceania = "Oceania"
     case unknown = "Unknown"
 
-    public var id: String { rawValue }
+    public var id: String { return rawValue }
 
     public init(source: String) {
         self = Region(rawValue: source.trimmingCharacters(in: .whitespacesAndNewlines)) ?? .unknown
     }
 
     public static func < (lhs: Region, rhs: Region) -> Bool {
-        lhs.rawValue.localizedStandardCompare(rhs.rawValue) == .orderedAscending
+        return lhs.rawValue.localizedStandardCompare(rhs.rawValue) == .orderedAscending
     }
 }

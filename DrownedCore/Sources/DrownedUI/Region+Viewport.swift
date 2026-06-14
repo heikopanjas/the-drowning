@@ -5,41 +5,41 @@ extension Region {
     var defaultRegion: MKCoordinateRegion {
         switch self {
             case .mediterranean:
-                region(center: (36.0, 17.0), span: (18.0, 42.0))
+                return region(center: (36.0, 17.0), span: (18.0, 42.0))
             case .northAmerica:
-                region(center: (39.0, -102.0), span: (40.0, 70.0))
+                return region(center: (39.0, -102.0), span: (40.0, 70.0))
             case .centralAmerica:
-                Self.centralAmericaCaribbeanRegion
+                return Self.centralAmericaCaribbeanRegion
             case .caribbean:
-                Self.centralAmericaCaribbeanRegion
+                return Self.centralAmericaCaribbeanRegion
             case .southAmerica:
-                region(center: (-15.0, -60.0), span: (55.0, 50.0))
+                return region(center: (-15.0, -60.0), span: (55.0, 50.0))
             case .northernAfrica:
-                Self.africaRegion
+                return Self.africaRegion
             case .westernAfrica:
-                Self.africaRegion
+                return Self.africaRegion
             case .middleAfrica:
-                Self.africaRegion
+                return Self.africaRegion
             case .easternAfrica:
-                Self.africaRegion
+                return Self.africaRegion
             case .southernAfrica:
-                Self.africaRegion
+                return Self.africaRegion
             case .westernAsia:
-                Self.asiaRegion
+                return Self.asiaRegion
             case .centralAsia:
-                Self.asiaRegion
+                return Self.asiaRegion
             case .southernAsia:
-                Self.asiaRegion
+                return Self.asiaRegion
             case .southEasternAsia:
-                Self.asiaRegion
+                return Self.asiaRegion
             case .easternAsia:
-                Self.asiaRegion
+                return Self.asiaRegion
             case .europe:
-                region(center: (52.0, 15.0), span: (35.0, 60.0))
+                return region(center: (52.0, 15.0), span: (35.0, 60.0))
             case .oceania:
-                region(center: (-22.0, 140.0), span: (50.0, 70.0))
+                return region(center: (-22.0, 140.0), span: (50.0, 70.0))
             case .unknown:
-                region(center: (20.0, 0.0), span: (120.0, 180.0))
+                return region(center: (20.0, 0.0), span: (120.0, 180.0))
         }
     }
 
@@ -59,14 +59,14 @@ extension Region {
     )
 
     private static func region(center: (Double, Double), span: (Double, Double)) -> MKCoordinateRegion {
-        MKCoordinateRegion(
+        return MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: center.0, longitude: center.1),
             span: MKCoordinateSpan(latitudeDelta: span.0, longitudeDelta: span.1)
         )
     }
 
     private func region(center: (Double, Double), span: (Double, Double)) -> MKCoordinateRegion {
-        Self.region(center: center, span: span)
+        return Self.region(center: center, span: span)
     }
 }
 
@@ -74,7 +74,10 @@ extension IncidentFilter {
     var fallbackRegion: MKCoordinateRegion {
         let selected =
             regions.isEmpty == true
-            ? Set(Region.allCases.filter { $0 != .unknown })
+            ? Set(
+                Region.allCases.filter { region in
+                    return region != .unknown
+                })
             : regions
         guard selected.count != 1 else {
             return selected.first?.defaultRegion ?? Region.mediterranean.defaultRegion

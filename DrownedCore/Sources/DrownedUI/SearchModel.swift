@@ -48,7 +48,9 @@ final class SearchModel: NSObject, MKLocalSearchCompleterDelegate {
     func camera(for completion: LocationCompletion) async throws -> CameraState? {
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = [completion.title, completion.subtitle]
-            .filter { $0.isEmpty == false }
+            .filter { value in
+                return value.isEmpty == false
+            }
             .joined(separator: ", ")
         let response = try await MKLocalSearch(request: request).start()
         guard let coordinate = response.mapItems.first?.placemark.coordinate else { return nil }
@@ -62,8 +64,8 @@ final class SearchModel: NSObject, MKLocalSearchCompleterDelegate {
     }
 
     nonisolated func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) -> Void {
-        let results = completer.results.map {
-            LocationCompletion(title: $0.title, subtitle: $0.subtitle)
+        let results = completer.results.map { result in
+            return LocationCompletion(title: result.title, subtitle: result.subtitle)
         }
         Task { @MainActor in
             completions = results

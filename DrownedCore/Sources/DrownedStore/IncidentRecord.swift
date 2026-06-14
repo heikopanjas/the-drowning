@@ -41,7 +41,7 @@ extension Incident {
     static let databaseTableName = "incident"
 
     func persistenceArguments() -> StatementArguments {
-        [
+        return [
             "webID": webID,
             "rawRegion": rawRegion,
             "reportedDate": reportedDate.missingMigrantsDateString,
@@ -64,7 +64,7 @@ extension Incident {
             "sourceQuality": sourceQuality,
             "regionOrigin": regionOrigin,
             "countryOrigin": countryOrigin,
-            "contentHash": contentHash,
+            "contentHash": contentHash
         ]
     }
 }
@@ -78,7 +78,7 @@ extension Date {
     }
 
     var missingMigrantsDateString: String {
-        Self.formatter.string(from: self)
+        return Self.formatter.string(from: self)
     }
 
     private static let formatter: DateFormatter = {

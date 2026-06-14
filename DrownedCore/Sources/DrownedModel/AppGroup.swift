@@ -4,7 +4,7 @@ public enum AppGroup {
     public static let identifier = "8J2G689FCZ.com.panjas.thedrowning"
 
     public static func containerURL(fileManager: FileManager = .default) -> URL? {
-        fileManager.containerURL(forSecurityApplicationGroupIdentifier: identifier)
+        return fileManager.containerURL(forSecurityApplicationGroupIdentifier: identifier)
     }
 
     public static func storeURL(fileManager: FileManager = .default) throws -> URL {
