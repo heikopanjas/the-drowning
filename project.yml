@@ -1,0 +1,109 @@
+# The Drowned — XcodeGen spec.  Regenerate with:  xcodegen generate
+# Then (once):  Cursor command palette → "Sweetpad: Generate Build Server Config"
+#
+# Direct distribution (no Mac App Store): no App Sandbox, Hardened Runtime on,
+# App Group is Team-ID-prefixed (required for non-MAS macOS apps).
+
+name: TheDrowned
+
+options:
+  bundleIdPrefix: com.panjas
+  deploymentTarget:
+    macOS: "14.0"            # floor is 14: @Observable (Observation) + SMAppService(13+)
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: 8J2G689FCZ
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_HARDENED_RUNTIME: YES            # required for notarization
+    CODE_SIGN_STYLE: Automatic              # release: Manual + "Developer ID Application"
+    MARKETING_VERSION: "1.6.15"
+    CURRENT_PROJECT_VERSION: "36"
+
+packages:
+  DrownedCore:
+    path: DrownedCore
+
+targets:
+
+  # ---- main windowed app ------------------------------------------------
+  TheDrowned:
+    type: application
+    platform: macOS
+    sources: [App/TheDrowned]
+    dependencies:
+      - package: DrownedCore
+        product: DrownedUI
+      - package: DrownedCore
+        product: DrownedSync
+      - package: DrownedCore
+        product: DrownedStore
+      - package: DrownedCore
+        product: DrownedNotify
+      - package: DrownedCore
+        product: DrownedModel
+      # Embed the agent .app + code-sign-on-copy into the main bundle.
+      # VERIFY after first build that it lands at:
+      #   TheDrowned.app/Contents/Library/LaunchAgents/TheDrownedAgent.app
+      # (the wrapper+subpath base is the one knob to confirm; the plist's
+      #  BundleProgram path must match wherever it ends up.)
+      - target: TheDrownedAgent
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Library/LaunchAgents
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.panjas.thedrowned
+        CODE_SIGN_ENTITLEMENTS: App/TheDrowned/TheDrowned.entitlements
+    info:
+      path: App/TheDrowned/Info.plist
+      properties:
+        LSMinimumSystemVersion: "14.0"
+        CFBundleURLTypes:
+          - CFBundleURLName: com.panjas.thedrowned
+            CFBundleURLSchemes: [thedrowned]    # notification-tap deep link
+    # Copy the launchd plist alongside the embedded agent.
+    copyFiles:
+      - destination: wrapper
+        subpath: Contents/Library/LaunchAgents
+        files:
+          - LaunchAgents/com.panjas.thedrowned.agent.plist
+
+  # ---- headless LaunchAgent helper (LSUIElement app bundle) --------------
+  TheDrownedAgent:
+    type: application
+    platform: macOS
+    sources: [App/TheDrownedAgent]
+    dependencies:
+      - package: DrownedCore
+        product: DrownedSync
+      - package: DrownedCore
+        product: DrownedStore
+      - package: DrownedCore
+        product: DrownedNotify
+      - package: DrownedCore
+        product: DrownedModel
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.panjas.thedrowned.agent
+        CODE_SIGN_ENTITLEMENTS: App/TheDrownedAgent/TheDrownedAgent.entitlements
+    info:
+      path: App/TheDrownedAgent/Info.plist
+      properties:
+        LSMinimumSystemVersion: "14.0"
+        LSUIElement: true     # agent: no Dock icon, can still post notifications
+
+schemes:
+  TheDrowned:
+    build:
+      targets: { TheDrowned: all }
+    run: { config: Debug }
+  TheDrownedAgent:           # run this directly from Cursor to debug poll→notify logic
+    build:
+      targets: { TheDrownedAgent: all }
+    run: { config: Debug }

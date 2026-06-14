@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- macOS direct distribution: App Group MUST be Team-ID-prefixed.
+         $(TeamIdentifierPrefix) expands to "<TeamID>." at build time, so this
+         resolves to <TeamID>.com.panjas.thedrowned and stays correct across
+         Debug/Release signing identities. Resolve the container at runtime with
+         FileManager.containerURL(forSecurityApplicationGroupIdentifier:). -->
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>$(TeamIdentifierPrefix)com.panjas.thedrowned</string>
+    </array>
+</dict>
+</plist>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.panjas.thedrowned.agent</string>
+
+    <!-- Relative to the MAIN app bundle root; points at the Mach-O, NOT the .app. -->
+    <key>BundleProgram</key>
+    <string>Contents/Library/LaunchAgents/TheDrownedAgent.app/Contents/MacOS/TheDrownedAgent</string>
+
+    <!-- Daily poll. launchd runs it at next wake if asleep at the fire time. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>9</integer>
+        <key>Minute</key><integer>0</integer>
+    </dict>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

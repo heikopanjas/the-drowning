@@ -1,0 +1,366 @@
+import DrownedModel
+import Foundation
+
+public struct IncidentCSVParser: Sendable {
+    public init() {}
+
+    @concurrent
+    public func parse(_ data: Data) async throws -> [Incident] {
+        guard let text = String(data: data, encoding: .utf8) else {
+            throw IncidentCSVParserError.invalidUTF8
+        }
+
+        let rows = try RFC4180Parser().parse(text.strippingByteOrderMark())
+        guard let header = rows.first else { return [] }
+
+        let columns = Dictionary(
+            header.enumerated().map { (Self.normalizedHeader($0.element), $0.offset) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        try [CSVColumn.webID, .region, .reportedDate].forEach { column in
+            guard column.index(in: columns) != nil else {
+                throw IncidentCSVParserError.missingColumn(column.aliases[0])
+            }
+        }
+
+        var seenRows = Set<String>()
+        var incidents: [Incident] = []
+        incidents.reserveCapacity(max(rows.count - 1, 0))
+
+        for row in rows.dropFirst() where !row.allSatisfy({ $0.isEmpty }) {
+            let fields = CSVIncidentFields(row: row, columns: columns)
+            let incident = try fields.incident()
+            let rowFingerprint = fields.rowFingerprint
+            guard seenRows.insert(rowFingerprint).inserted else { continue }
+            incidents.append(incident)
+        }
+
+        return incidents
+    }
+
+    private static func normalizedHeader(_ header: String) -> String {
+        header
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\u{feff}", with: "")
+            .lowercased()
+    }
+}
+
+public enum IncidentCSVParserError: Error, Equatable, Sendable, CustomStringConvertible, LocalizedError {
+    case invalidUTF8
+    case missingColumn(String)
+    case invalidDate(String)
+    case invalidInteger(column: String, value: String)
+    case malformedCSV(String = "")
+
+    public var description: String {
+        switch self {
+        case .invalidUTF8:
+            "CSV data is not valid UTF-8."
+        case .missingColumn(let column):
+            "CSV is missing required column '\(column)'."
+        case .invalidDate(let value):
+            "CSV contains invalid reported_date '\(value)'."
+        case .invalidInteger(let column, let value):
+            "CSV contains invalid integer '\(value)' in column '\(column)'."
+        case .malformedCSV(let context):
+            context.isEmpty ? "CSV is malformed." : "CSV is malformed: \(context)"
+        }
+    }
+
+    public var errorDescription: String? { description }
+}
+
+private enum CSVColumn: CaseIterable {
+    case webID
+    case region
+    case reportedDate
+    case numberDead
+    case numberMissing
+    case totalDeadAndMissing
+    case numberOfSurvivors
+    case numberOfFemale
+    case numberOfMale
+    case numberOfChildren
+    case causeDeath
+    case countryOfIncident
+    case locationDescription
+    case unsdGeographicGrouping
+    case locationCoordinates
+    case migrationRoute
+    case informationSource
+    case url
+    case sourceQuality
+    case regionOrigin
+    case countryOrigin
+
+    var aliases: [String] {
+        switch self {
+        case .webID:
+            ["web_id", "Main ID", "Incident ID"]
+        case .region:
+            ["region", "Region of Incident", "Region"]
+        case .reportedDate:
+            ["reported_date", "Incident Date"]
+        case .numberDead:
+            ["number_dead", "Number Dead", "Number of Dead"]
+        case .numberMissing:
+            ["number_missing", "Minimum Estimated Number of Missing"]
+        case .totalDeadAndMissing:
+            ["total_dead_and_missing", "Total Number of Dead and Missing"]
+        case .numberOfSurvivors:
+            ["number_of_survivors", "Number of Survivors", "Number Survivors"]
+        case .numberOfFemale:
+            ["number_of_female", "Number of Females", "Number Females"]
+        case .numberOfMale:
+            ["number_of_male", "Number of Males", "Number Males"]
+        case .numberOfChildren:
+            ["number_of_children", "Number of Children", "Number Children"]
+        case .causeDeath:
+            ["cause_death", "Cause of Death"]
+        case .countryOfIncident:
+            ["country_of_incident", "Country of Incident"]
+        case .locationDescription:
+            ["location_description", "Location of Incident", "Location of death"]
+        case .unsdGeographicGrouping:
+            ["unsd_geographic_grouping", "UNSD Geographical Grouping"]
+        case .locationCoordinates:
+            ["location_coodinates", "Coordinates"]
+        case .migrationRoute:
+            ["migration_route", "Migration Route", "Migration route"]
+        case .informationSource:
+            ["information_source", "Information Source"]
+        case .url:
+            ["url", "URL"]
+        case .sourceQuality:
+            ["source_quality", "Source Quality"]
+        case .regionOrigin:
+            ["region_origin", "Region of Origin", "Region Origin"]
+        case .countryOrigin:
+            ["country_origin", "Country of Origin", "Country Origin"]
+        }
+    }
+
+    func index(in columns: [String: Int]) -> Int? {
+        aliases.lazy
+            .map {
+                $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                    .replacingOccurrences(of: "\u{feff}", with: "")
+                    .lowercased()
+            }
+            .compactMap { columns[$0] }
+            .first
+    }
+}
+
+private struct CSVIncidentFields {
+    let row: [String]
+    let columns: [String: Int]
+
+    var rowFingerprint: String {
+        CSVColumn.allCases
+            .map { value($0) }
+            .joined(separator: "\u{1F}")
+    }
+
+    func incident() throws -> Incident {
+        let rawRegion = trimmed(.region)
+        let coordinate = Coordinate(field: trimmed(.locationCoordinates))
+        let contentFields = CSVColumn.allCases
+            .filter { $0 != .webID }
+            .map { value($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+        let numberDead = try optionalInt(.numberDead)
+        let numberMissing = try optionalInt(.numberMissing)
+
+        return Incident(
+            webID: trimmed(.webID),
+            region: Region(source: rawRegion),
+            rawRegion: rawRegion,
+            reportedDate: try date(.reportedDate),
+            numberDead: numberDead,
+            numberMissing: numberMissing,
+            totalDeadAndMissing: try optionalInt(.totalDeadAndMissing) ?? Self.sum(numberDead, numberMissing),
+            numberOfSurvivors: try optionalInt(.numberOfSurvivors),
+            numberOfFemale: try optionalInt(.numberOfFemale),
+            numberOfMale: try optionalInt(.numberOfMale),
+            numberOfChildren: try optionalInt(.numberOfChildren),
+            causeOfDeath: trimmed(.causeDeath),
+            countryOfIncident: optionalString(.countryOfIncident) ?? "",
+            locationDescription: trimmed(.locationDescription),
+            unsdGeographicGrouping: trimmed(.unsdGeographicGrouping),
+            latitude: coordinate?.latitude,
+            longitude: coordinate?.longitude,
+            migrationRoute: optionalString(.migrationRoute),
+            informationSource: optionalString(.informationSource),
+            sourceURL: optionalString(.url),
+            sourceQuality: try optionalInt(.sourceQuality),
+            regionOrigin: optionalString(.regionOrigin),
+            countryOrigin: optionalString(.countryOrigin),
+            contentHash: StableHasher.hash(contentFields)
+        )
+    }
+
+    private static func sum(_ lhs: Int?, _ rhs: Int?) -> Int? {
+        guard lhs != nil || rhs != nil else { return nil }
+        return (lhs ?? 0) + (rhs ?? 0)
+    }
+
+    private func value(_ column: CSVColumn) -> String {
+        guard let index = column.index(in: columns), row.indices.contains(index) else { return "" }
+        return row[index]
+    }
+
+    private func trimmed(_ column: CSVColumn) -> String {
+        value(column).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func optionalString(_ column: CSVColumn) -> String? {
+        let value = trimmed(column)
+        return value.isEmpty ? nil : value
+    }
+
+    private func optionalInt(_ column: CSVColumn) throws -> Int? {
+        let value = trimmed(column)
+        guard !value.isEmpty else { return nil }
+        if column == .sourceQuality, let firstValue = value.split(separator: ",").first.flatMap({ Int($0) }) {
+            return firstValue
+        }
+        if column == .sourceQuality {
+            return nil
+        }
+        let normalized = value.replacingOccurrences(of: ",", with: "")
+        guard let integer = Int(normalized) else {
+            throw IncidentCSVParserError.invalidInteger(column: column.aliases[0], value: value)
+        }
+        return integer
+    }
+
+    private func date(_ column: CSVColumn) throws -> Date {
+        let value = trimmed(column)
+        for formatter in DateFormatter.missingMigrantsDateFormatters {
+            if let date = formatter.date(from: value) {
+                return date
+            }
+        }
+        throw IncidentCSVParserError.invalidDate(value)
+    }
+}
+
+private struct RFC4180Parser {
+    func parse(_ text: String) throws -> [[String]] {
+        var rows: [[String]] = []
+        var row: [String] = []
+        var field = ""
+        var index = text.startIndex
+        var isQuoted = false
+        var justClosedQuote = false
+
+        while index < text.endIndex {
+            let character = text[index]
+            let nextIndex = text.index(after: index)
+
+            if isQuoted {
+                if character == "\"" {
+                    if nextIndex < text.endIndex, text[nextIndex] == "\"" {
+                        field.append("\"")
+                        index = text.index(after: nextIndex)
+                    } else {
+                        isQuoted = false
+                        justClosedQuote = true
+                        index = nextIndex
+                    }
+                } else {
+                    field.append(character)
+                    index = nextIndex
+                }
+                continue
+            }
+
+            switch character {
+            case "\"":
+                guard field.isEmpty, !justClosedQuote else {
+                    throw IncidentCSVParserError.malformedCSV("Unexpected quote after field text near: \(field.suffix(80))")
+                }
+                isQuoted = true
+                index = nextIndex
+            case ",":
+                row.append(field)
+                field.removeAll(keepingCapacity: true)
+                justClosedQuote = false
+                index = nextIndex
+            case "\n", "\r\n":
+                row.append(field)
+                rows.append(row)
+                row.removeAll(keepingCapacity: true)
+                field.removeAll(keepingCapacity: true)
+                justClosedQuote = false
+                index = nextIndex
+            case "\r":
+                row.append(field)
+                rows.append(row)
+                row.removeAll(keepingCapacity: true)
+                field.removeAll(keepingCapacity: true)
+                justClosedQuote = false
+                if nextIndex < text.endIndex, text[nextIndex] == "\n" {
+                    index = text.index(after: nextIndex)
+                } else {
+                    index = nextIndex
+                }
+            default:
+                if justClosedQuote, !character.isWhitespace {
+                    let nearby = String(text[index...].prefix(120))
+                    throw IncidentCSVParserError.malformedCSV(
+                        "Unexpected character '\(character)' after closing quote near: \(nearby)"
+                    )
+                }
+                field.append(character)
+                index = nextIndex
+            }
+        }
+
+        guard !isQuoted else { throw IncidentCSVParserError.malformedCSV("Unclosed quoted field") }
+        if !field.isEmpty || !row.isEmpty || text.last == "," {
+            row.append(field)
+            rows.append(row)
+        }
+
+        return rows
+    }
+}
+
+private enum StableHasher {
+    static func hash(_ values: [String]) -> Int64 {
+        var hash: UInt64 = 0xcbf29ce484222325
+        for value in values {
+            for byte in value.utf8 {
+                hash ^= UInt64(byte)
+                hash = hash &* 0x100000001b3
+            }
+            hash ^= 0x1f
+            hash = hash &* 0x100000001b3
+        }
+        return Int64(bitPattern: hash)
+    }
+}
+
+private extension DateFormatter {
+    static let missingMigrantsDateFormatters: [DateFormatter] = [
+        makeMissingMigrantsDateFormatter("yyyy-MM-dd"),
+        makeMissingMigrantsDateFormatter("EEE, MM/dd/yyyy - HH:mm"),
+    ]
+
+    static func makeMissingMigrantsDateFormatter(_ dateFormat: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = dateFormat
+        return formatter
+    }
+}
+
+private extension String {
+    func strippingByteOrderMark() -> String {
+        hasPrefix("\u{feff}") ? String(dropFirst()) : self
+    }
+}
