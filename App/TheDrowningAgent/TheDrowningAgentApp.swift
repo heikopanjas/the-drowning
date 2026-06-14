@@ -6,7 +6,7 @@ import Foundation
 import UserNotifications
 
 @main
-enum TheDrownedAgent {
+enum TheDrowningAgent {
     static func main() async {
         do {
             let store = try IncidentStore()
@@ -22,7 +22,7 @@ enum TheDrownedAgent {
             let notifyRegions = SettingsReader.notifyRegions()
             try await NotificationCoordinator().post(outcome, notifyRegions: notifyRegions)
         } catch {
-            FileHandle.standardError.write(Data("TheDrownedAgent failed: \(error)\n".utf8))
+            FileHandle.standardError.write(Data("TheDrowningAgent failed: \(error)\n".utf8))
         }
     }
 }

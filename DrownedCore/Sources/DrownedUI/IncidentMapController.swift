@@ -17,7 +17,7 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
     private var mapIdleTask: Task<Void, Never>?
     private var detailTask: Task<Void, Never>?
     private var detailPopover: NSPopover?
-    private static let mapIdleDelay: UInt64 = 350_000_000
+    private static let mapIdleDelay: UInt64 = 650_000_000
 
     var fetchIncident: ((String) async throws -> Incident?)?
     var onCameraIdle: ((CameraState) -> Void)?

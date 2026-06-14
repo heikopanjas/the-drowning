@@ -1,7 +1,7 @@
 import Foundation
 
 public enum AppGroup {
-    public static let identifier = "8J2G689FCZ.com.panjas.thedrowned"
+    public static let identifier = "8J2G689FCZ.com.panjas.thedrowning"
 
     public static func containerURL(fileManager: FileManager = .default) -> URL? {
         fileManager.containerURL(forSecurityApplicationGroupIdentifier: identifier)
@@ -18,7 +18,7 @@ public enum AppGroup {
             appropriateFor: nil,
             create: true
         )
-        let directoryURL = supportURL.appendingPathComponent("TheDrowned", isDirectory: true)
+        let directoryURL = supportURL.appendingPathComponent("TheDrowning", isDirectory: true)
         try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
         return directoryURL.appendingPathComponent("drowned.sqlite")
     }

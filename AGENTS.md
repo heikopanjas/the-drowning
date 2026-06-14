@@ -14,7 +14,7 @@ Run `/init-session` at the beginning of each new session, OR read this entire fi
 
 ## Mission Statement
 
-The Drowned is a macOS-first monitoring application for the IOM Missing
+The Drowning is a macOS-first monitoring application for the IOM Missing
 Migrants Project dataset. It has two v1 surfaces: a windowed SwiftUI map for
 exploring incidents by region, route, cause, and date; and a headless macOS
 LaunchAgent helper that performs gentle local polling, updates a shared store,
@@ -113,10 +113,10 @@ When initializing a session or analyzing the workspace, refer to instruction fil
   `DrownedStore`, `DrownedSync`, `DrownedNotify`, and `DrownedUI`. Platform
   shells should stay thin.
 - The root Xcode project is generated from `project.yml` with
-  `xcodegen generate`. Do not hand-edit `TheDrowned.xcodeproj` for settings that
+  `xcodegen generate`. Do not hand-edit `TheDrowning.xcodeproj` for settings that
   belong in the spec.
 - The root layout contains `DrownedCore/` for the Swift package,
-  `App/TheDrowned/` for the windowed app, `App/TheDrownedAgent/` for the
+  `App/TheDrowning/` for the windowed app, `App/TheDrowningAgent/` for the
   LaunchAgent helper app, and `LaunchAgents/` for launchd plists.
 - Confine platform-specific APIs such as `SMAppService`, launchd, AppKit, and
   bundle wiring to the macOS app target, LaunchAgent helper, or map
@@ -206,7 +206,7 @@ When initializing a session or analyzing the workspace, refer to instruction fil
 - Persist notification and polling settings in App Group `UserDefaults`; persist
   view-only state such as filters and map camera in standard `UserDefaults`.
 - App versions are managed in `project.yml` via `MARKETING_VERSION` and
-  `CURRENT_PROJECT_VERSION`; regenerate `TheDrowned.xcodeproj` after changing
+  `CURRENT_PROJECT_VERSION`; regenerate `TheDrowning.xcodeproj` after changing
   either value.
 
 ### Security & Safety
@@ -278,6 +278,27 @@ Automatically bump the project version after every code change and include it in
 
 ### 2026-06-14
 
+- Renamed all active bundle IDs, URL names/schemes, LaunchAgent labels, and App
+  Group identifiers from `thedrowned` to `thedrowning`
+- Bumped `MARKETING_VERSION` to `1.6.19` and `CURRENT_PROJECT_VERSION` to `40`
+- Reasoning: bundle identity should match the final app name across the app,
+  helper, launchd plist, deep link registration, and shared container
+- Renamed app and helper source files, target schemes, generated Xcode project,
+  and embedded helper paths from `TheDrowned` to `TheDrowning`
+- Bumped `MARKETING_VERSION` to `1.6.18` and `CURRENT_PROJECT_VERSION` to `39`
+- Reasoning: filesystem and generated project names should match the app name
+  while stable bundle identifiers and App Group settings continue to preserve
+  installed data
+- Renamed the user-facing app from `The Drowned` to `The Drowning` while
+  keeping target names, bundle identifiers, URL scheme, and App Group stable
+- Bumped `MARKETING_VERSION` to `1.6.17` and `CURRENT_PROJECT_VERSION` to `38`
+- Reasoning: the display/product name should match the chosen title without
+  breaking existing local data, LaunchAgent registration, or deep links
+- Smoothed two-finger trackpad panning by increasing the map-idle debounce and
+  ignoring tiny visible-bounds shifts before refreshing map annotations
+- Bumped `MARKETING_VERSION` to `1.6.16` and `CURRENT_PROJECT_VERSION` to `37`
+- Reasoning: trackpad momentum can emit many small region changes, and those
+  should not repeatedly restart the visible annotation query while panning
 - Added a clickable IOM Missing Migrants Project link to the bottom attribution
   bar and removed the dashed fitted-region map overlay
 - Bumped `MARKETING_VERSION` to `1.6.15` and `CURRENT_PROJECT_VERSION` to `36`
@@ -478,7 +499,7 @@ Automatically bump the project version after every code change and include it in
 - Reasoning: establish a functional v1 implementation path while preserving the
   local-store-first architecture and documented CSV/data caveats
 - Created the root XcodeGen-based project structure and generated
-  `TheDrowned.xcodeproj` using Team ID `8J2G689FCZ`
+  `TheDrowning.xcodeproj` using Team ID `8J2G689FCZ`
 - Documented the root layout and `xcodegen generate` regeneration workflow
 - Reasoning: make the generated project reproducible and keep future build
   settings changes in `project.yml`

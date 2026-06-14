@@ -4,11 +4,11 @@ import ServiceManagement
 import SwiftUI
 
 @main
-struct TheDrownedApp: App {
+struct TheDrowningApp: App {
     @State private var launchError: String?
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("The Drowning") {
             Root()
                 .task {
                     registerAgent()
@@ -19,7 +19,7 @@ struct TheDrownedApp: App {
 
     private func registerAgent() {
         do {
-            try SMAppService.agent(plistName: "com.panjas.thedrowned.agent.plist").register()
+            try SMAppService.agent(plistName: "com.panjas.thedrowning.agent.plist").register()
         } catch {
             launchError = error.localizedDescription
         }
@@ -33,9 +33,9 @@ private struct Root: View {
     var body: some View {
         Group {
             if let store {
-                TheDrownedRootView(store: store)
+                TheDrowningRootView(store: store)
             } else if let errorMessage {
-                ContentUnavailableView("The Drowned cannot start", systemImage: "exclamationmark.triangle")
+                ContentUnavailableView("The Drowning cannot start", systemImage: "exclamationmark.triangle")
                     .overlay(alignment: .bottom) {
                         Text(errorMessage)
                             .font(.callout)

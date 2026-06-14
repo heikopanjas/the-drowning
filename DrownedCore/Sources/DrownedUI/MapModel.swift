@@ -121,6 +121,7 @@ public final class MapModel {
     }
 
     public func updateVisibleBounds(_ bounds: CoordinateBounds) {
+        guard visibleBounds?.shouldRefreshMapAnnotations(for: bounds) != false else { return }
         visibleBounds = bounds
     }
 
@@ -137,6 +138,38 @@ private struct IncidentSnapshot: Sendable {
     let incidents: [Incident]
     let visibleCount: Int
     let filteredCount: Int
+}
+
+private extension CoordinateBounds {
+    func shouldRefreshMapAnnotations(for bounds: CoordinateBounds) -> Bool {
+        let latitudeSpan = max(maximumLatitude - minimumLatitude, 0.000001)
+        let longitudeSpan = max(maximumLongitude - minimumLongitude, 0.000001)
+        let latitudeCenterDelta = abs(bounds.centerLatitude - centerLatitude) / latitudeSpan
+        let longitudeCenterDelta = abs(bounds.centerLongitude - centerLongitude) / longitudeSpan
+        let latitudeSpanDelta = abs(bounds.latitudeSpan - latitudeSpan) / latitudeSpan
+        let longitudeSpanDelta = abs(bounds.longitudeSpan - longitudeSpan) / longitudeSpan
+
+        return latitudeCenterDelta > 0.12
+            || longitudeCenterDelta > 0.12
+            || latitudeSpanDelta > 0.08
+            || longitudeSpanDelta > 0.08
+    }
+
+    var centerLatitude: Double {
+        (minimumLatitude + maximumLatitude) / 2
+    }
+
+    var centerLongitude: Double {
+        (minimumLongitude + maximumLongitude) / 2
+    }
+
+    var latitudeSpan: Double {
+        maximumLatitude - minimumLatitude
+    }
+
+    var longitudeSpan: Double {
+        maximumLongitude - minimumLongitude
+    }
 }
 
 struct MapQueryKey: Hashable {

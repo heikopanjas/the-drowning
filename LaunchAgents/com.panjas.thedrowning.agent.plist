@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.panjas.thedrowned.agent</string>
+    <string>com.panjas.thedrowning.agent</string>
 
     <!-- Relative to the MAIN app bundle root; points at the Mach-O, NOT the .app. -->
     <key>BundleProgram</key>
-    <string>Contents/Library/LaunchAgents/TheDrownedAgent.app/Contents/MacOS/TheDrownedAgent</string>
+    <string>Contents/Library/LaunchAgents/TheDrowningAgent.app/Contents/MacOS/TheDrowningAgent</string>
 
     <!-- Daily poll. launchd runs it at next wake if asleep at the fire time. -->
     <key>StartCalendarInterval</key>

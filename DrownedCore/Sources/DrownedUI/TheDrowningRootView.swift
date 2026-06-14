@@ -5,7 +5,7 @@ import DrownedSync
 import MapKit
 import SwiftUI
 
-public struct TheDrownedRootView: View {
+public struct TheDrowningRootView: View {
     @State private var model: MapModel
     @State private var searchModel = SearchModel()
     @State private var syncError: String?
