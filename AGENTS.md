@@ -293,6 +293,14 @@ Automatically bump the project version after every code change and include it in
 
 ### 2026-06-14
 
+- Refactored `DrownedCore/Sources` to match the Swift coding conventions:
+  removed URL force unwraps, applied explicit Boolean/nil checks, split combined
+  guards and switch cases, added explicit `-> Void`, and split shared types into
+  dedicated files (`AppGroup`, `DrownedDefaultsKey`, `SyncOutcome`, `CameraState`,
+  `SyncEngine`, `LocationCompletion`, `MapFitRequest`, `MapQueryKey`)
+- Bumped `MARKETING_VERSION` to `1.6.22` and `CURRENT_PROJECT_VERSION` to `43`
+- Reasoning: core package code should follow the same enforced style rules as the
+  app shells before further UI or parser refactors
 - Aligned function brace guidance with `.swift-format` same-line Apple style
 - Reasoning: the formatter cannot enforce next-line function braces, so manual
   Allman-style requirements should not fight automatic formatting

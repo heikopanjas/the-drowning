@@ -3,13 +3,13 @@ import Foundation
 @preconcurrency import UserNotifications
 
 public protocol NotificationPosting: Sendable {
-    func add(_ request: UNNotificationRequest) async throws
+    func add(_ request: UNNotificationRequest) async throws -> Void
 }
 
 public struct UserNotificationPoster: NotificationPosting {
     public init() {}
 
-    public func add(_ request: UNNotificationRequest) async throws {
+    public func add(_ request: UNNotificationRequest) async throws -> Void {
         try await UNUserNotificationCenter.current().add(request)
     }
 }
@@ -21,11 +21,11 @@ public struct NotificationCoordinator: Sendable {
         self.poster = poster
     }
 
-    public func post(_ outcome: SyncOutcome, notifyRegions: Set<Region>) async throws {
-        guard !outcome.suppressNotifications else { return }
+    public func post(_ outcome: SyncOutcome, notifyRegions: Set<Region>) async throws -> Void {
+        guard outcome.suppressNotifications == false else { return }
 
         let relevant = outcome.newIncidents.filter { notifyRegions.contains($0.region) }
-        guard !relevant.isEmpty else { return }
+        guard relevant.isEmpty == false else { return }
 
         let grouped = Dictionary(grouping: relevant, by: \.region)
         for region in grouped.keys.sorted() {

@@ -50,7 +50,7 @@ public final class MapModel {
         lastSyncAt = defaults.object(forKey: DrownedDefaultsKey.lastSyncAt) as? Date
     }
 
-    public func observe() async {
+    public func observe() async -> Void {
         isLoading = true
         errorMessage = nil
         viewState.save(filter: filter)
@@ -74,9 +74,11 @@ public final class MapModel {
                 filteredIncidentCount = snapshot.filteredCount
                 isLoading = false
             }
-        } catch is CancellationError {
+        }
+        catch is CancellationError {
             isLoading = false
-        } catch {
+        }
+        catch {
             isLoading = false
             errorMessage = error.localizedDescription
         }
@@ -87,21 +89,22 @@ public final class MapModel {
         causes = try await store.availableCauses(regions: filter.regions)
     }
 
-    public func resetFilter() {
+    public func resetFilter() -> Void {
         filter = IncidentFilter()
     }
 
-    public func updateRegionSelection(_ region: Region, isSelected: Bool) async {
-        if isSelected {
+    public func updateRegionSelection(_ region: Region, isSelected: Bool) async -> Void {
+        if isSelected == true {
             filter.regions.insert(region)
-        } else {
+        }
+        else {
             filter.regions.remove(region)
         }
 
         await fitSelectedRegions()
     }
 
-    public func fitSelectedRegions() async {
+    public func fitSelectedRegions() async -> Void {
         visibleBounds = nil
 
         do {
@@ -111,25 +114,26 @@ public final class MapModel {
             guard let bounds = CoordinateBounds(incidents: incidents, trimsOutliers: true) else { return }
             visibleBounds = bounds
             requestedFit = MapFitRequest(bounds: bounds)
-        } catch {
+        }
+        catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    public func save(camera: CameraState) {
+    public func save(camera: CameraState) -> Void {
         viewState.save(camera: camera)
     }
 
-    public func updateVisibleBounds(_ bounds: CoordinateBounds) {
+    public func updateVisibleBounds(_ bounds: CoordinateBounds) -> Void {
         guard visibleBounds?.shouldRefreshMapAnnotations(for: bounds) != false else { return }
         visibleBounds = bounds
     }
 
-    public func moveCamera(to state: CameraState) {
+    public func moveCamera(to state: CameraState) -> Void {
         requestedCamera = state
     }
 
-    public func syncCompleted(at date: Date) {
+    public func syncCompleted(at date: Date) -> Void {
         lastSyncAt = date
     }
 }
@@ -140,8 +144,8 @@ private struct IncidentSnapshot: Sendable {
     let filteredCount: Int
 }
 
-private extension CoordinateBounds {
-    func shouldRefreshMapAnnotations(for bounds: CoordinateBounds) -> Bool {
+extension CoordinateBounds {
+    fileprivate func shouldRefreshMapAnnotations(for bounds: CoordinateBounds) -> Bool {
         let latitudeSpan = max(maximumLatitude - minimumLatitude, 0.000001)
         let longitudeSpan = max(maximumLongitude - minimumLongitude, 0.000001)
         let latitudeCenterDelta = abs(bounds.centerLatitude - centerLatitude) / latitudeSpan
@@ -155,35 +159,20 @@ private extension CoordinateBounds {
             || longitudeSpanDelta > 0.08
     }
 
-    var centerLatitude: Double {
+    fileprivate var centerLatitude: Double {
         (minimumLatitude + maximumLatitude) / 2
     }
 
-    var centerLongitude: Double {
+    fileprivate var centerLongitude: Double {
         (minimumLongitude + maximumLongitude) / 2
     }
 
-    var latitudeSpan: Double {
+    fileprivate var latitudeSpan: Double {
         maximumLatitude - minimumLatitude
     }
 
-    var longitudeSpan: Double {
+    fileprivate var longitudeSpan: Double {
         maximumLongitude - minimumLongitude
-    }
-}
-
-struct MapQueryKey: Hashable {
-    let filter: IncidentFilter
-    let bounds: CoordinateBounds?
-}
-
-public struct MapFitRequest: Sendable, Hashable, Identifiable {
-    public let id: UUID
-    public let bounds: CoordinateBounds
-
-    public init(bounds: CoordinateBounds, id: UUID = UUID()) {
-        self.id = id
-        self.bounds = bounds
     }
 }
 

@@ -41,21 +41,23 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
         )
     }
 
-    func apply(_ state: CameraState) {
+    func apply(_ state: CameraState) -> Void {
         mapView.camera = state.mkCamera
         cameraRestored = true
     }
 
-    func applyRequestedCamera(_ state: CameraState?) {
-        guard let state, state != lastRequestedCamera else { return }
+    func applyRequestedCamera(_ state: CameraState?) -> Void {
+        guard let state else { return }
+        guard state != lastRequestedCamera else { return }
         lastRequestedCamera = state
         cameraRestored = true
         needsFrame = false
         mapView.setCamera(state.mkCamera, animated: true)
     }
 
-    func applyRequestedFit(_ request: MapFitRequest?) {
-        guard let request, request.id != lastRequestedFitID else { return }
+    func applyRequestedFit(_ request: MapFitRequest?) -> Void {
+        guard let request else { return }
+        guard request.id != lastRequestedFitID else { return }
         lastRequestedFitID = request.id
         cameraRestored = true
         needsFrame = false
@@ -66,19 +68,24 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
         )
     }
 
-    func update(mapType: MKMapType) {
+    func update(mapType: MKMapType) -> Void {
         guard mapView.mapType != mapType else { return }
         mapView.mapType = mapType
     }
 
-    func update(_ incidents: [Incident]) {
-        let shouldFrameInitialAnnotations = shown.isEmpty && !incidents.isEmpty
+    func update(_ incidents: [Incident]) -> Void {
+        var shouldFrameInitialAnnotations = false
+        if shown.isEmpty == true {
+            if incidents.isEmpty == false {
+                shouldFrameInitialAnnotations = true
+            }
+        }
         let incoming = Set(incidents.map(\.id))
         let displayCoordinates = displayCoordinates(for: incidents)
         incidentDetails = Dictionary(uniqueKeysWithValues: incidents.map { ($0.id, $0) })
         guard incoming != Set(shown.keys) else { return }
 
-        let toRemove = shown.keys.filter { !incoming.contains($0) }
+        let toRemove = shown.keys.filter { incoming.contains($0) == false }
         for id in toRemove {
             if let annotation = shown.removeValue(forKey: id) {
                 mapView.removeAnnotation(annotation)
@@ -96,17 +103,18 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
         needsFrame = shouldFrameInitialAnnotations
     }
 
-    func frame(fallback: MKCoordinateRegion) {
-        guard !cameraRestored else {
+    func frame(fallback: MKCoordinateRegion) -> Void {
+        guard cameraRestored == false else {
             cameraRestored = false
             needsFrame = false
             return
         }
-        guard needsFrame else { return }
+        guard needsFrame == true else { return }
 
-        if mapView.annotations.isEmpty {
+        if mapView.annotations.isEmpty == true {
             mapView.setRegion(fallback, animated: false)
-        } else {
+        }
+        else {
             mapView.showAnnotations(mapView.annotations, animated: false)
         }
         needsFrame = false
@@ -121,19 +129,18 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
         }
 
         guard let incidentAnnotation = annotation as? IncidentAnnotation else { return nil }
-        let view = mapView.dequeueReusableAnnotationView(
-            withIdentifier: "incident",
-            for: annotation
-        ) as? IncidentAnnotationView
+        let view =
+            mapView.dequeueReusableAnnotationView(
+                withIdentifier: "incident",
+                for: annotation
+            ) as? IncidentAnnotationView
         view?.clusteringIdentifier = clusteringIdentifier(for: incidentAnnotation, mode: clusteringMode)
         return view
     }
 
-    public func mapView(_ mapView: MKMapView, didSelect annotationView: MKAnnotationView) {
-        guard let annotation = annotationView.annotation as? IncidentAnnotation,
-              let incident = incidentDetails[annotation.incidentID] else {
-            return
-        }
+    public func mapView(_ mapView: MKMapView, didSelect annotationView: MKAnnotationView) -> Void {
+        guard let annotation = annotationView.annotation as? IncidentAnnotation else { return }
+        guard let incident = incidentDetails[annotation.incidentID] else { return }
         detailTask?.cancel()
         detailPopover?.close()
 
@@ -148,55 +155,62 @@ public final class IncidentMapController: NSObject, MKMapViewDelegate {
         popover.show(relativeTo: annotationView.bounds, of: annotationView, preferredEdge: .maxY)
 
         detailTask = Task { @MainActor [weak self, weak mapView, weak annotationView, weak callout] in
-            guard let self, let fetchIncident else { return }
+            guard let self else { return }
+            guard let fetchIncident else { return }
 
             do {
-                guard let fullIncident = try await fetchIncident(annotation.incidentID),
-                      !Task.isCancelled,
-                      mapView?.selectedAnnotations.contains(where: { selected in
-                          (selected as? IncidentAnnotation)?.incidentID == annotation.incidentID
-                      }) == true,
-                      annotationView?.annotation === annotation else {
+                guard let fullIncident = try await fetchIncident(annotation.incidentID) else { return }
+                guard Task.isCancelled == false else { return }
+                guard
+                    mapView?.selectedAnnotations.contains(where: { selected in
+                        (selected as? IncidentAnnotation)?.incidentID == annotation.incidentID
+                    }) == true
+                else {
                     return
                 }
+                guard annotationView?.annotation === annotation else { return }
 
                 callout?.update(incident: fullIncident, state: .loaded)
-            } catch is CancellationError {
+            }
+            catch is CancellationError {
                 return
-            } catch {
+            }
+            catch {
                 callout?.update(incident: incident, state: .failed(error.localizedDescription))
             }
         }
     }
 
-    public func mapView(_ mapView: MKMapView, didDeselect annotationView: MKAnnotationView) {
+    public func mapView(_ mapView: MKMapView, didDeselect annotationView: MKAnnotationView) -> Void {
         detailTask?.cancel()
         detailTask = nil
         detailPopover?.close()
         detailPopover = nil
     }
 
-    public func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+    public func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) -> Void {
         scheduleMapIdleUpdate(for: mapView)
     }
 
-    private func scheduleMapIdleUpdate(for mapView: MKMapView) {
+    private func scheduleMapIdleUpdate(for mapView: MKMapView) -> Void {
         mapIdleTask?.cancel()
         mapIdleTask = Task { @MainActor [weak self, weak mapView] in
             do {
                 try await Task.sleep(nanoseconds: Self.mapIdleDelay)
-            } catch {
+            }
+            catch {
                 return
             }
 
-            guard let self, let mapView else { return }
+            guard let self else { return }
+            guard let mapView else { return }
             updateClustering(for: mapView)
             onCameraIdle?(CameraState(mapView.camera))
             onVisibleRegionChange?(CoordinateBounds(region: mapView.region))
         }
     }
 
-    private func updateClustering(for mapView: MKMapView) {
+    private func updateClustering(for mapView: MKMapView) -> Void {
         let mode = clusteringMode(for: mapView)
         guard mode != clusteringMode else { return }
         let annotations = Array(shown.values)
@@ -285,8 +299,8 @@ private struct DisplayCoordinateKey: Hashable {
     }
 }
 
-private extension CoordinateBounds {
-    var rectangleCoordinates: [CLLocationCoordinate2D] {
+extension CoordinateBounds {
+    fileprivate var rectangleCoordinates: [CLLocationCoordinate2D] {
         [
             CLLocationCoordinate2D(latitude: minimumLatitude, longitude: minimumLongitude),
             CLLocationCoordinate2D(latitude: minimumLatitude, longitude: maximumLongitude),
@@ -407,7 +421,7 @@ private final class IncidentCalloutView: NSView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func update(incident: Incident, state: State) {
+    func update(incident: Incident, state: State) -> Void {
         bodyStack.arrangedSubviews.forEach { view in
             bodyStack.removeArrangedSubview(view)
             view.removeFromSuperview()
@@ -430,11 +444,11 @@ private final class IncidentCalloutView: NSView {
         resizeToFitContent()
     }
 
-    override func layout() {
+    override func layout() -> Void {
         super.layout()
     }
 
-    private func addFullDetails(for incident: Incident) {
+    private func addFullDetails(for incident: Incident) -> Void {
         addRow("Reported", value: incident.reportedDate.formatted(date: .abbreviated, time: .omitted))
         addRow("Cause of death", value: incident.causeOfDeath)
         addRow("Total dead and missing", value: incident.totalDeadAndMissing.map { $0.formatted() } ?? "Unknown")
@@ -457,23 +471,27 @@ private final class IncidentCalloutView: NSView {
             addRow("Source quality", value: sourceQuality.formatted())
         }
 
-        if let latitude = incident.latitude, let longitude = incident.longitude {
-            addRow("Coordinates", value: "\(latitude.formatted()), \(longitude.formatted())")
+        if let latitude = incident.latitude {
+            if let longitude = incident.longitude {
+                addRow("Coordinates", value: "\(latitude.formatted()), \(longitude.formatted())")
+            }
         }
 
         addRow("Web ID", value: incident.webID)
         addRow("Content hash", value: incident.contentHash.formatted())
     }
 
-    private func addOptionalRow(_ title: String, value: String?) {
-        guard let value, !value.isEmpty else { return }
+    private func addOptionalRow(_ title: String, value: String?) -> Void {
+        guard let value else { return }
+        guard value.isEmpty == false else { return }
         addRow(title, value: value)
     }
 
-    private func addOptionalURLRow(_ title: String, value: String?) {
-        guard let value, !value.isEmpty else { return }
+    private func addOptionalURLRow(_ title: String, value: String?) -> Void {
+        guard let value else { return }
+        guard value.isEmpty == false else { return }
         let urls = Self.urls(in: value)
-        guard !urls.isEmpty else {
+        guard urls.isEmpty == false else {
             addRow(title, value: value)
             return
         }
@@ -490,16 +508,16 @@ private final class IncidentCalloutView: NSView {
         addRow(title, valueView: linkStack)
     }
 
-    private func addOptionalNumberRow(_ title: String, value: Int?) {
+    private func addOptionalNumberRow(_ title: String, value: Int?) -> Void {
         guard let value else { return }
         addRow(title, value: value.formatted())
     }
 
-    private func addRow(_ title: String, value: String) {
+    private func addRow(_ title: String, value: String) -> Void {
         addRow(title, valueView: Self.valueLabel(value))
     }
 
-    private func addRow(_ title: String, valueView: NSView) {
+    private func addRow(_ title: String, valueView: NSView) -> Void {
         bodyStack.addArrangedSubview(
             IncidentDetailRowView(
                 title: title,
@@ -562,11 +580,11 @@ private final class IncidentCalloutView: NSView {
             return []
         }
 
-        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+        let range = NSRange(text.startIndex ..< text.endIndex, in: text)
         return detector.matches(in: text, range: range).compactMap(\.url)
     }
 
-    private func resizeToFitContent() {
+    private func resizeToFitContent() -> Void {
         setFrameSize(Self.calloutSize)
 
         bodyStack.layoutSubtreeIfNeeded()
@@ -580,7 +598,7 @@ private final class IncidentCalloutView: NSView {
         invalidateIntrinsicContentSize()
     }
 
-    private func scrollToTop() {
+    private func scrollToTop() -> Void {
         scrollView.contentView.scroll(to: NSPoint(x: 0, y: 0))
         scrollView.reflectScrolledClipView(scrollView.contentView)
     }
@@ -588,7 +606,6 @@ private final class IncidentCalloutView: NSView {
     private static var calloutSize: NSSize {
         NSSize(width: calloutWidth, height: calloutHeight)
     }
-
 }
 
 private final class FlippedStackView: NSStackView {
@@ -665,11 +682,11 @@ private final class LinkTextField: NSTextField {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func mouseDown(with event: NSEvent) {
+    override func mouseDown(with event: NSEvent) -> Void {
         NSWorkspace.shared.open(url)
     }
 
-    override func resetCursorRects() {
+    override func resetCursorRects() -> Void {
         addCursorRect(bounds, cursor: .pointingHand)
     }
 }

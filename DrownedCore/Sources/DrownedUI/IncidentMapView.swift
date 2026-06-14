@@ -53,7 +53,7 @@ public struct IncidentMapView: NSViewRepresentable {
         return controller.mapView
     }
 
-    public func updateNSView(_ view: MKMapView, context: Context) {
+    public func updateNSView(_ view: MKMapView, context: Context) -> Void {
         context.coordinator.fetchIncident = fetchIncident
         context.coordinator.onCameraIdle = onCameraIdle
         context.coordinator.onVisibleRegionChange = onVisibleRegionChange

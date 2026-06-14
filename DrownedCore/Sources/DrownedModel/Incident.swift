@@ -29,7 +29,8 @@ public struct Incident: Sendable, Identifiable, Hashable, Codable {
     public let contentHash: Int64
 
     public var coordinate: Coordinate? {
-        guard let latitude, let longitude else { return nil }
+        guard let latitude else { return nil }
+        guard let longitude else { return nil }
         return Coordinate(latitude: latitude, longitude: longitude)
     }
 

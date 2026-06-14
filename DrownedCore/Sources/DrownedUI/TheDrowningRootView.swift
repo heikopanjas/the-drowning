@@ -38,15 +38,16 @@ public struct TheDrowningRootView: View {
         }
     }
 
-    private func sync() async {
-        guard !isSyncing else { return }
+    private func sync() async -> Void {
+        guard isSyncing == false else { return }
         isSyncing = true
         syncError = nil
         do {
             let outcome = try await LocalPollingSync(store: store).sync()
             UserDefaults.standard.set(outcome.completedAt, forKey: DrownedDefaultsKey.lastSyncAt)
             model.syncCompleted(at: outcome.completedAt)
-        } catch {
+        }
+        catch {
             syncError = error.localizedDescription
         }
         isSyncing = false
@@ -69,9 +70,10 @@ private struct FilterPopoverContent: View {
                 }
 
                 filterSection(.routes, title: "Routes") {
-                    if model.routes.isEmpty {
+                    if model.routes.isEmpty == true {
                         emptyFilterText("No routes loaded")
-                    } else {
+                    }
+                    else {
                         ForEach(model.routes, id: \.self) { route in
                             filterToggle(route, isOn: setBinding(route, keyPath: \.routes))
                         }
@@ -79,9 +81,10 @@ private struct FilterPopoverContent: View {
                 }
 
                 filterSection(.causes, title: "Causes") {
-                    if model.causes.isEmpty {
+                    if model.causes.isEmpty == true {
                         emptyFilterText("No causes loaded")
-                    } else {
+                    }
+                    else {
                         ForEach(model.causes, id: \.self) { cause in
                             filterToggle(cause, isOn: setBinding(cause, keyPath: \.causes))
                         }
@@ -155,9 +158,10 @@ private struct FilterPopoverContent: View {
         Binding {
             expandedSections.contains(section)
         } set: { isExpanded in
-            if isExpanded {
+            if isExpanded == true {
                 expandedSections.insert(section)
-            } else {
+            }
+            else {
                 expandedSections.remove(section)
             }
         }
@@ -181,9 +185,10 @@ private struct FilterPopoverContent: View {
         Binding {
             model.filter[keyPath: keyPath].contains(value)
         } set: { isSelected in
-            if isSelected {
+            if isSelected == true {
                 model.filter[keyPath: keyPath].insert(value)
-            } else {
+            }
+            else {
                 model.filter[keyPath: keyPath].remove(value)
             }
         }
@@ -204,7 +209,12 @@ private struct MapScreen: View {
     let syncError: String?
     let fetchIncident: (String) async throws -> Incident?
     let sync: () async -> Void
-    private static let iomURL = URL(string: "https://missingmigrants.iom.int")!
+    private static let iomURL: URL = {
+        guard let url = URL(string: "https://missingmigrants.iom.int") else {
+            fatalError("Invalid IOM URL constant")
+        }
+        return url
+    }()
 
     @State private var isFilterPresented = false
     @AppStorage(DrownedDefaultsKey.mapStyle) private var mapStyleRawValue = MapStyle.standard.rawValue
@@ -225,13 +235,16 @@ private struct MapScreen: View {
                     onVisibleRegionChange: model.updateVisibleBounds(_:)
                 )
 
-                if model.isLoading && model.incidents.isEmpty {
-                    ProgressView()
-                        .controlSize(.large)
-                        .padding()
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-                        .padding(.top, 24)
-                } else if model.incidents.isEmpty {
+                if model.isLoading == true {
+                    if model.incidents.isEmpty == true {
+                        ProgressView()
+                            .controlSize(.large)
+                            .padding()
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                            .padding(.top, 24)
+                    }
+                }
+                else if model.incidents.isEmpty == true {
                     ContentUnavailableView("No incidents match these filters", systemImage: "map")
                         .padding(.top, 40)
                 }
@@ -245,7 +258,7 @@ private struct MapScreen: View {
                         .padding(.top, 16)
                 }
 
-                if !searchModel.completions.isEmpty {
+                if searchModel.completions.isEmpty == false {
                     locationPreview
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.leading, 12)
@@ -337,7 +350,7 @@ private struct MapScreen: View {
                             .foregroundStyle(.primary)
                             .lineLimit(1)
 
-                        if !completion.subtitle.isEmpty {
+                        if completion.subtitle.isEmpty == false {
                             Text(completion.subtitle)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -364,7 +377,7 @@ private struct MapScreen: View {
         .shadow(radius: 8, y: 4)
     }
 
-    private func select(_ completion: LocationCompletion) {
+    private func select(_ completion: LocationCompletion) -> Void {
         let search = searchModel
         Task {
             if let camera = try? await search.camera(for: completion) {
@@ -383,7 +396,7 @@ private struct MapScreen: View {
     }
 
     private var mapIncidentCountLabel: String {
-        if model.isAnnotationLimited {
+        if model.isAnnotationLimited == true {
             return "Map: \(model.incidents.count.formatted()) of \(model.matchingIncidentCount.formatted()) visible"
         }
         return "Map: \(model.matchingIncidentCount.formatted()) visible"
@@ -397,7 +410,7 @@ private struct MapScreen: View {
         MapStyle(rawValue: mapStyleRawValue) ?? .standard
     }
 
-    private func toggleMapStyle() {
+    private func toggleMapStyle() -> Void {
         mapStyleRawValue = mapStyle == .standard ? MapStyle.hybrid.rawValue : MapStyle.standard.rawValue
     }
 
@@ -465,7 +478,7 @@ private struct MacSearchField: NSViewRepresentable {
         return field
     }
 
-    func updateNSView(_ field: NSSearchField, context: Context) {
+    func updateNSView(_ field: NSSearchField, context: Context) -> Void {
         context.coordinator.text = $text
         context.coordinator.onTextChange = onTextChange
         if field.stringValue != text {
@@ -487,7 +500,7 @@ private struct MacSearchField: NSViewRepresentable {
             self.onTextChange = onTextChange
         }
 
-        func controlTextDidChange(_ notification: Notification) {
+        func controlTextDidChange(_ notification: Notification) -> Void {
             guard let field = notification.object as? NSSearchField else { return }
             text.wrappedValue = field.stringValue
             onTextChange(field.stringValue)

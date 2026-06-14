@@ -2,12 +2,12 @@ import DrownedModel
 import Foundation
 import GRDB
 
-public extension IncidentFilter {
-    func fetchAll(_ db: Database) throws -> [Incident] {
+extension IncidentFilter {
+    public func fetchAll(_ db: Database) throws -> [Incident] {
         try Incident.fetchAll(db, sql: sql.orderByDateDescending, arguments: sql.arguments)
     }
 
-    func fetchMapAnnotations(_ db: Database, limit: Int, bounds: CoordinateBounds?) throws -> [Incident] {
+    public func fetchMapAnnotations(_ db: Database, limit: Int, bounds: CoordinateBounds?) throws -> [Incident] {
         guard limit > 0 else { return [] }
         let sql = sql(bounds: bounds)
         var arguments = sql.arguments
@@ -15,7 +15,7 @@ public extension IncidentFilter {
         return try Incident.fetchAll(db, sql: sql.orderByDeadliest + " LIMIT ?", arguments: arguments)
     }
 
-    func count(_ db: Database, bounds: CoordinateBounds? = nil) throws -> Int {
+    public func count(_ db: Database, bounds: CoordinateBounds? = nil) throws -> Int {
         let sql = sql(bounds: bounds)
         return try Int.fetchOne(db, sql: sql.count, arguments: sql.arguments) ?? 0
     }
@@ -31,15 +31,16 @@ extension IncidentFilter {
         var arguments = StatementArguments()
 
         let concreteRegions = regions.filter { $0 != .unknown }
-        if !concreteRegions.isEmpty {
+        if concreteRegions.isEmpty == false {
             predicates.append("rawRegion IN \(regionPlaceholders(concreteRegions.count))")
             concreteRegions.sorted().forEach { arguments += [$0.rawValue] }
-        } else if regions == [.unknown] {
+        }
+        else if regions == [.unknown] {
             predicates.append("rawRegion = ?")
             arguments += [Region.unknown.rawValue]
         }
 
-        if !routes.isEmpty {
+        if routes.isEmpty == false {
             predicates.append("migrationRoute IN \(regionPlaceholders(routes.count))")
             routes.sorted().forEach { arguments += [$0] }
         }
@@ -54,12 +55,12 @@ extension IncidentFilter {
             arguments += [endDate.missingMigrantsDateString]
         }
 
-        if !causes.isEmpty {
+        if causes.isEmpty == false {
             predicates.append("causeOfDeath IN \(regionPlaceholders(causes.count))")
             causes.sorted().forEach { arguments += [$0] }
         }
 
-        if mappableOnly {
+        if mappableOnly == true {
             predicates.append("latitude IS NOT NULL AND longitude IS NOT NULL")
         }
 
@@ -69,13 +70,14 @@ extension IncidentFilter {
             if bounds.minimumLongitude <= bounds.maximumLongitude {
                 predicates.append("longitude BETWEEN ? AND ?")
                 arguments += [bounds.minimumLongitude, bounds.maximumLongitude]
-            } else {
+            }
+            else {
                 predicates.append("(longitude >= ? OR longitude <= ?)")
                 arguments += [bounds.minimumLongitude, bounds.maximumLongitude]
             }
         }
 
-        let whereClause = predicates.isEmpty ? "" : " WHERE " + predicates.joined(separator: " AND ")
+        let whereClause = predicates.isEmpty == true ? "" : " WHERE " + predicates.joined(separator: " AND ")
         return IncidentSQL(whereClause: whereClause, arguments: arguments)
     }
 

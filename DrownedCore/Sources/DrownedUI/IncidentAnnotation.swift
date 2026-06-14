@@ -10,10 +10,12 @@ final class IncidentAnnotation: NSObject, MKAnnotation {
     init?(_ incident: Incident, displayCoordinate: CLLocationCoordinate2D? = nil) {
         guard let coordinate = incident.coordinate else { return nil }
         incidentID = incident.id
-        self.coordinate = displayCoordinate ?? CLLocationCoordinate2D(
-            latitude: coordinate.latitude,
-            longitude: coordinate.longitude
-        )
+        self.coordinate =
+            displayCoordinate
+            ?? CLLocationCoordinate2D(
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude
+            )
         super.init()
     }
 }
@@ -46,7 +48,7 @@ final class IncidentAnnotationView: MKAnnotationView {
         }
     }
 
-    override func layout() {
+    override func layout() -> Void {
         super.layout()
         layer?.cornerRadius = bounds.width / 2
         symbolView.frame = NSRect(
@@ -57,7 +59,7 @@ final class IncidentAnnotationView: MKAnnotationView {
         )
     }
 
-    private func configure() {
+    private func configure() -> Void {
         frame.size = NSSize(width: Self.diameter, height: Self.diameter)
         wantsLayer = true
         layer?.backgroundColor = NSColor.black.cgColor
@@ -81,12 +83,12 @@ final class IncidentClusterAnnotationView: MKAnnotationView {
         }
     }
 
-    override func prepareForDisplay() {
+    override func prepareForDisplay() -> Void {
         super.prepareForDisplay()
         updateImage()
     }
 
-    private func updateImage() {
+    private func updateImage() -> Void {
         guard let cluster = annotation as? MKClusterAnnotation else { return }
         let incidentCount = cluster.memberAnnotations.compactMap { $0 as? IncidentAnnotation }.count
         image = MapAnnotationImage.circle(diameter: 32, text: incidentCount.formatted())
@@ -114,7 +116,7 @@ private enum MapAnnotationImage {
         return image
     }
 
-    private static func draw(_ text: String, in rect: NSRect) {
+    private static func draw(_ text: String, in rect: NSRect) -> Void {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = .center
 

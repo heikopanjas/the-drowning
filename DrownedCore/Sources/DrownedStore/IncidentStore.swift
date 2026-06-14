@@ -19,12 +19,12 @@ public actor IncidentStore {
         try Self.makeMigrator().migrate(dbPool)
     }
 
-    public func replaceAll(_ incidents: [Incident]) throws {
+    public func replaceAll(_ incidents: [Incident]) throws -> Void {
         try dbPool.write { db in
             var inserted = Set<String>()
             try db.execute(sql: "DELETE FROM incident")
 
-            for incident in incidents where inserted.insert(incident.id).inserted {
+            for incident in incidents where inserted.insert(incident.id).inserted == true {
                 try db.execute(sql: Self.insertSQL, arguments: incident.persistenceArguments())
             }
         }
@@ -37,8 +37,8 @@ public actor IncidentStore {
         }
     }
 
-    public func markSeen(_ webIDs: Set<String>) throws {
-        guard !webIDs.isEmpty else { return }
+    public func markSeen(_ webIDs: Set<String>) throws -> Void {
+        guard webIDs.isEmpty == false else { return }
         try dbPool.write { db in
             for webID in webIDs {
                 try db.execute(
@@ -86,7 +86,7 @@ public actor IncidentStore {
         try dbPool.read { db in
             var sql = "SELECT DISTINCT migrationRoute FROM incident WHERE migrationRoute IS NOT NULL AND migrationRoute != ''"
             var arguments = StatementArguments()
-            if !regions.isEmpty {
+            if regions.isEmpty == false {
                 sql += " AND rawRegion IN (" + Array(repeating: "?", count: regions.count).joined(separator: ", ") + ")"
                 regions.sorted().forEach { arguments += [$0.rawValue] }
             }
@@ -99,7 +99,7 @@ public actor IncidentStore {
         try dbPool.read { db in
             var sql = "SELECT DISTINCT causeOfDeath FROM incident WHERE causeOfDeath != ''"
             var arguments = StatementArguments()
-            if !regions.isEmpty {
+            if regions.isEmpty == false {
                 sql += " AND rawRegion IN (" + Array(repeating: "?", count: regions.count).joined(separator: ", ") + ")"
                 regions.sorted().forEach { arguments += [$0.rawValue] }
             }
@@ -170,10 +170,8 @@ private struct IncidentIdentity {
     let contentHash: Int64
 
     init?(id: String) {
-        guard let separator = id.lastIndex(of: "#"),
-              let contentHash = Int64(id[id.index(after: separator)...]) else {
-            return nil
-        }
+        guard let separator = id.lastIndex(of: "#") else { return nil }
+        guard let contentHash = Int64(id[id.index(after: separator)...]) else { return nil }
         webID = String(id[..<separator])
         self.contentHash = contentHash
     }

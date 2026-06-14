@@ -27,11 +27,11 @@ public struct IncidentCSVParser: Sendable {
         var incidents: [Incident] = []
         incidents.reserveCapacity(max(rows.count - 1, 0))
 
-        for row in rows.dropFirst() where !row.allSatisfy({ $0.isEmpty }) {
+        for row in rows.dropFirst() where row.allSatisfy({ $0.isEmpty == true }) == false {
             let fields = CSVIncidentFields(row: row, columns: columns)
             let incident = try fields.incident()
             let rowFingerprint = fields.rowFingerprint
-            guard seenRows.insert(rowFingerprint).inserted else { continue }
+            guard seenRows.insert(rowFingerprint).inserted == true else { continue }
             incidents.append(incident)
         }
 
@@ -55,16 +55,16 @@ public enum IncidentCSVParserError: Error, Equatable, Sendable, CustomStringConv
 
     public var description: String {
         switch self {
-        case .invalidUTF8:
-            "CSV data is not valid UTF-8."
-        case .missingColumn(let column):
-            "CSV is missing required column '\(column)'."
-        case .invalidDate(let value):
-            "CSV contains invalid reported_date '\(value)'."
-        case .invalidInteger(let column, let value):
-            "CSV contains invalid integer '\(value)' in column '\(column)'."
-        case .malformedCSV(let context):
-            context.isEmpty ? "CSV is malformed." : "CSV is malformed: \(context)"
+            case .invalidUTF8:
+                "CSV data is not valid UTF-8."
+            case .missingColumn(let column):
+                "CSV is missing required column '\(column)'."
+            case .invalidDate(let value):
+                "CSV contains invalid reported_date '\(value)'."
+            case .invalidInteger(let column, let value):
+                "CSV contains invalid integer '\(value)' in column '\(column)'."
+            case .malformedCSV(let context):
+                context.isEmpty ? "CSV is malformed." : "CSV is malformed: \(context)"
         }
     }
 
@@ -96,48 +96,48 @@ private enum CSVColumn: CaseIterable {
 
     var aliases: [String] {
         switch self {
-        case .webID:
-            ["web_id", "Main ID", "Incident ID"]
-        case .region:
-            ["region", "Region of Incident", "Region"]
-        case .reportedDate:
-            ["reported_date", "Incident Date"]
-        case .numberDead:
-            ["number_dead", "Number Dead", "Number of Dead"]
-        case .numberMissing:
-            ["number_missing", "Minimum Estimated Number of Missing"]
-        case .totalDeadAndMissing:
-            ["total_dead_and_missing", "Total Number of Dead and Missing"]
-        case .numberOfSurvivors:
-            ["number_of_survivors", "Number of Survivors", "Number Survivors"]
-        case .numberOfFemale:
-            ["number_of_female", "Number of Females", "Number Females"]
-        case .numberOfMale:
-            ["number_of_male", "Number of Males", "Number Males"]
-        case .numberOfChildren:
-            ["number_of_children", "Number of Children", "Number Children"]
-        case .causeDeath:
-            ["cause_death", "Cause of Death"]
-        case .countryOfIncident:
-            ["country_of_incident", "Country of Incident"]
-        case .locationDescription:
-            ["location_description", "Location of Incident", "Location of death"]
-        case .unsdGeographicGrouping:
-            ["unsd_geographic_grouping", "UNSD Geographical Grouping"]
-        case .locationCoordinates:
-            ["location_coodinates", "Coordinates"]
-        case .migrationRoute:
-            ["migration_route", "Migration Route", "Migration route"]
-        case .informationSource:
-            ["information_source", "Information Source"]
-        case .url:
-            ["url", "URL"]
-        case .sourceQuality:
-            ["source_quality", "Source Quality"]
-        case .regionOrigin:
-            ["region_origin", "Region of Origin", "Region Origin"]
-        case .countryOrigin:
-            ["country_origin", "Country of Origin", "Country Origin"]
+            case .webID:
+                ["web_id", "Main ID", "Incident ID"]
+            case .region:
+                ["region", "Region of Incident", "Region"]
+            case .reportedDate:
+                ["reported_date", "Incident Date"]
+            case .numberDead:
+                ["number_dead", "Number Dead", "Number of Dead"]
+            case .numberMissing:
+                ["number_missing", "Minimum Estimated Number of Missing"]
+            case .totalDeadAndMissing:
+                ["total_dead_and_missing", "Total Number of Dead and Missing"]
+            case .numberOfSurvivors:
+                ["number_of_survivors", "Number of Survivors", "Number Survivors"]
+            case .numberOfFemale:
+                ["number_of_female", "Number of Females", "Number Females"]
+            case .numberOfMale:
+                ["number_of_male", "Number of Males", "Number Males"]
+            case .numberOfChildren:
+                ["number_of_children", "Number of Children", "Number Children"]
+            case .causeDeath:
+                ["cause_death", "Cause of Death"]
+            case .countryOfIncident:
+                ["country_of_incident", "Country of Incident"]
+            case .locationDescription:
+                ["location_description", "Location of Incident", "Location of death"]
+            case .unsdGeographicGrouping:
+                ["unsd_geographic_grouping", "UNSD Geographical Grouping"]
+            case .locationCoordinates:
+                ["location_coodinates", "Coordinates"]
+            case .migrationRoute:
+                ["migration_route", "Migration Route", "Migration route"]
+            case .informationSource:
+                ["information_source", "Information Source"]
+            case .url:
+                ["url", "URL"]
+            case .sourceQuality:
+                ["source_quality", "Source Quality"]
+            case .regionOrigin:
+                ["region_origin", "Region of Origin", "Region Origin"]
+            case .countryOrigin:
+                ["country_origin", "Country of Origin", "Country Origin"]
         }
     }
 
@@ -201,12 +201,17 @@ private struct CSVIncidentFields {
     }
 
     private static func sum(_ lhs: Int?, _ rhs: Int?) -> Int? {
-        guard lhs != nil || rhs != nil else { return nil }
+        if lhs == nil {
+            if rhs == nil {
+                return nil
+            }
+        }
         return (lhs ?? 0) + (rhs ?? 0)
     }
 
     private func value(_ column: CSVColumn) -> String {
-        guard let index = column.index(in: columns), row.indices.contains(index) else { return "" }
+        guard let index = column.index(in: columns) else { return "" }
+        guard row.indices.contains(index) == true else { return "" }
         return row[index]
     }
 
@@ -221,7 +226,7 @@ private struct CSVIncidentFields {
 
     private func optionalInt(_ column: CSVColumn) throws -> Int? {
         let value = trimmed(column)
-        guard !value.isEmpty else { return nil }
+        guard value.isEmpty == false else { return nil }
         if column == .sourceQuality, let firstValue = value.split(separator: ",").first.flatMap({ Int($0) }) {
             return firstValue
         }
@@ -259,17 +264,26 @@ private struct RFC4180Parser {
             let character = text[index]
             let nextIndex = text.index(after: index)
 
-            if isQuoted {
+            if isQuoted == true {
                 if character == "\"" {
-                    if nextIndex < text.endIndex, text[nextIndex] == "\"" {
-                        field.append("\"")
-                        index = text.index(after: nextIndex)
-                    } else {
+                    if nextIndex < text.endIndex {
+                        if text[nextIndex] == "\"" {
+                            field.append("\"")
+                            index = text.index(after: nextIndex)
+                        }
+                        else {
+                            isQuoted = false
+                            justClosedQuote = true
+                            index = nextIndex
+                        }
+                    }
+                    else {
                         isQuoted = false
                         justClosedQuote = true
                         index = nextIndex
                     }
-                } else {
+                }
+                else {
                     field.append(character)
                     index = nextIndex
                 }
@@ -277,49 +291,68 @@ private struct RFC4180Parser {
             }
 
             switch character {
-            case "\"":
-                guard field.isEmpty, !justClosedQuote else {
-                    throw IncidentCSVParserError.malformedCSV("Unexpected quote after field text near: \(field.suffix(80))")
-                }
-                isQuoted = true
-                index = nextIndex
-            case ",":
-                row.append(field)
-                field.removeAll(keepingCapacity: true)
-                justClosedQuote = false
-                index = nextIndex
-            case "\n", "\r\n":
-                row.append(field)
-                rows.append(row)
-                row.removeAll(keepingCapacity: true)
-                field.removeAll(keepingCapacity: true)
-                justClosedQuote = false
-                index = nextIndex
-            case "\r":
-                row.append(field)
-                rows.append(row)
-                row.removeAll(keepingCapacity: true)
-                field.removeAll(keepingCapacity: true)
-                justClosedQuote = false
-                if nextIndex < text.endIndex, text[nextIndex] == "\n" {
-                    index = text.index(after: nextIndex)
-                } else {
+                case "\"":
+                    guard field.isEmpty == true else {
+                        throw IncidentCSVParserError.malformedCSV("Unexpected quote after field text near: \(field.suffix(80))")
+                    }
+                    guard justClosedQuote == false else {
+                        throw IncidentCSVParserError.malformedCSV("Unexpected quote after field text near: \(field.suffix(80))")
+                    }
+                    isQuoted = true
                     index = nextIndex
-                }
-            default:
-                if justClosedQuote, !character.isWhitespace {
-                    let nearby = String(text[index...].prefix(120))
-                    throw IncidentCSVParserError.malformedCSV(
-                        "Unexpected character '\(character)' after closing quote near: \(nearby)"
-                    )
-                }
-                field.append(character)
-                index = nextIndex
+                case ",":
+                    row.append(field)
+                    field.removeAll(keepingCapacity: true)
+                    justClosedQuote = false
+                    index = nextIndex
+                case "\n", "\r\n":
+                    row.append(field)
+                    rows.append(row)
+                    row.removeAll(keepingCapacity: true)
+                    field.removeAll(keepingCapacity: true)
+                    justClosedQuote = false
+                    index = nextIndex
+                case "\r":
+                    row.append(field)
+                    rows.append(row)
+                    row.removeAll(keepingCapacity: true)
+                    field.removeAll(keepingCapacity: true)
+                    justClosedQuote = false
+                    if nextIndex < text.endIndex {
+                        if text[nextIndex] == "\n" {
+                            index = text.index(after: nextIndex)
+                        }
+                        else {
+                            index = nextIndex
+                        }
+                    }
+                    else {
+                        index = nextIndex
+                    }
+                default:
+                    if justClosedQuote == true {
+                        if character.isWhitespace == false {
+                            let nearby = String(text[index...].prefix(120))
+                            throw IncidentCSVParserError.malformedCSV(
+                                "Unexpected character '\(character)' after closing quote near: \(nearby)"
+                            )
+                        }
+                    }
+                    field.append(character)
+                    index = nextIndex
             }
         }
 
-        guard !isQuoted else { throw IncidentCSVParserError.malformedCSV("Unclosed quoted field") }
-        if !field.isEmpty || !row.isEmpty || text.last == "," {
+        guard isQuoted == false else { throw IncidentCSVParserError.malformedCSV("Unclosed quoted field") }
+        if field.isEmpty == false {
+            row.append(field)
+            rows.append(row)
+        }
+        else if row.isEmpty == false {
+            row.append(field)
+            rows.append(row)
+        }
+        else if text.last == "," {
             row.append(field)
             rows.append(row)
         }
@@ -330,26 +363,26 @@ private struct RFC4180Parser {
 
 private enum StableHasher {
     static func hash(_ values: [String]) -> Int64 {
-        var hash: UInt64 = 0xcbf29ce484222325
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
         for value in values {
             for byte in value.utf8 {
                 hash ^= UInt64(byte)
-                hash = hash &* 0x100000001b3
+                hash = hash &* 0x100_0000_01b3
             }
             hash ^= 0x1f
-            hash = hash &* 0x100000001b3
+            hash = hash &* 0x100_0000_01b3
         }
         return Int64(bitPattern: hash)
     }
 }
 
-private extension DateFormatter {
-    static let missingMigrantsDateFormatters: [DateFormatter] = [
+extension DateFormatter {
+    fileprivate static let missingMigrantsDateFormatters: [DateFormatter] = [
         makeMissingMigrantsDateFormatter("yyyy-MM-dd"),
-        makeMissingMigrantsDateFormatter("EEE, MM/dd/yyyy - HH:mm"),
+        makeMissingMigrantsDateFormatter("EEE, MM/dd/yyyy - HH:mm")
     ]
 
-    static func makeMissingMigrantsDateFormatter(_ dateFormat: String) -> DateFormatter {
+    fileprivate static func makeMissingMigrantsDateFormatter(_ dateFormat: String) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -359,8 +392,8 @@ private extension DateFormatter {
     }
 }
 
-private extension String {
-    func strippingByteOrderMark() -> String {
+extension String {
+    fileprivate func strippingByteOrderMark() -> String {
         hasPrefix("\u{feff}") ? String(dropFirst()) : self
     }
 }

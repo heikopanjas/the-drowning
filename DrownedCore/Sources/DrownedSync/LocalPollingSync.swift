@@ -2,14 +2,18 @@ import DrownedModel
 import DrownedStore
 import Foundation
 
-public protocol SyncEngine: Sendable {
-    func sync() async throws -> SyncOutcome
-}
-
 public actor LocalPollingSync: SyncEngine {
-    public static let defaultEndpoint = URL(
-        string: "https://data.humdata.org/dataset/fc59785a-31d2-4018-aac7-6b9f619ae8ec/resource/99078436-9c4a-473b-a073-428304a9cf8a/download/iom-missing-migrants-project-data.csv"
-    )!
+    public static let defaultEndpoint: URL = {
+        guard
+            let url = URL(
+                string:
+                    "https://data.humdata.org/dataset/fc59785a-31d2-4018-aac7-6b9f619ae8ec/resource/99078436-9c4a-473b-a073-428304a9cf8a/download/iom-missing-migrants-project-data.csv"
+            )
+        else {
+            fatalError("Invalid default sync endpoint URL constant")
+        }
+        return url
+    }()
 
     private let endpoint: URL
     private let store: IncidentStore
