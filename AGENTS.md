@@ -257,6 +257,20 @@ When initializing a session or analyzing the workspace, refer to instruction fil
 
 Load the `swift-coding-conventions` skill before writing, reviewing, or refactoring Swift code.
 Load the `swift-build-commands` skill when building or running the project.
+When a condition only checks whether an optional value is present or absent,
+compare directly with `nil` using `== nil` or `!= nil`. Do not use optional
+binding as an implicit nil check unless the unwrapped value is actually used.
+When the unwrapped value is used in the branch, prefer `if let` or `guard let`
+instead of an explicit nil check followed by force unwrap.
+Place `else` and `catch` on their own line after the previous block's closing
+brace, matching `.swift-format`'s `lineBreakBeforeControlFlowKeywords: true`
+setting.
+Use `.swift-format` for mechanical formatting and lint rules it supports.
+Use the `swift-coding-conventions` skill for conventions that `swift-format`
+cannot represent, including function opening braces on the next line, explicit
+`-> Void` return types, explicit Boolean comparisons, nested `if` conditions
+instead of combined conditions, and one primary type per file. Keep
+`NoVoidReturnOnFunctionSignature` disabled so explicit `-> Void` is allowed.
 
 <!-- {integration} -->
 
@@ -278,6 +292,40 @@ Automatically bump the project version after every code change and include it in
 
 ### 2026-06-14
 
+- Clarified in the Swift style guide when to use explicit nil comparisons versus
+  optional binding, including SwiftUI `if let value { use(value) }` cases
+- Reasoning: style reviews should not treat the absence of `== nil` as a
+  violation when the unwrapped optional is actually used
+- Restored next-line function opening braces in App and Agent entry files after
+  formatter drift
+- Bumped `MARKETING_VERSION` to `1.6.21` and `CURRENT_PROJECT_VERSION` to `42`
+- Reasoning: the style refactor plan requires Allman function braces, which
+  `swift-format` cannot enforce automatically
+- Aligned App and Agent entry Swift files with the style guide and renamed the
+  helper entry file to `TheDrowningAgent.swift`
+- Bumped `MARKETING_VERSION` to `1.6.20` and `CURRENT_PROJECT_VERSION` to `41`
+- Reasoning: app shell code should follow explicit Void signatures, next-line
+  function braces, and `else`/`catch` line breaks before broader refactors
+- Extended `.swift-format` with `AvoidRetroactiveConformances`,
+  `NoEmptyLinesOpeningClosingBraces`, `multilineTrailingCommaBehavior`,
+  `reflowMultilineStringLiterals`, `indentBlankLines`, and explicit
+  `orderedImports` settings
+- Reasoning: formatter-supported rules should be encoded in `.swift-format`
+  while style-guide-only conventions stay documented separately
+- Documented the split between `.swift-format` and the Swift style guide in
+  AGENTS.md
+- Reasoning: agents should know which conventions are formatter-enforced and
+  which still require manual review
+- Documented the Swift style requirement that `else` and `catch` start on their
+  own line after a closing brace
+- Reasoning: the style guide should explicitly match the existing
+  `.swift-format` `lineBreakBeforeControlFlowKeywords: true` setting
+- Added an explicit Swift style rule requiring direct `nil` comparisons for
+  presence checks and allowing optional binding only when the unwrapped value is
+  used
+- Reasoning: nil checks should follow the same explicit comparison style as
+  Boolean literal checks and match `swift-format`'s
+  `UseExplicitNilCheckInConditions` behavior
 - Renamed all active bundle IDs, URL names/schemes, LaunchAgent labels, and App
   Group identifiers from `thedrowned` to `thedrowning`
 - Bumped `MARKETING_VERSION` to `1.6.19` and `CURRENT_PROJECT_VERSION` to `40`

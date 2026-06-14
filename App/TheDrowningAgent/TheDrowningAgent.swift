@@ -7,7 +7,7 @@ import UserNotifications
 
 @main
 enum TheDrowningAgent {
-    static func main() async {
+    static func main() async -> Void {
         do {
             let store = try IncidentStore()
             let outcome = try await LocalPollingSync(store: store).sync()
@@ -21,7 +21,8 @@ enum TheDrowningAgent {
 
             let notifyRegions = SettingsReader.notifyRegions()
             try await NotificationCoordinator().post(outcome, notifyRegions: notifyRegions)
-        } catch {
+        }
+        catch {
             FileHandle.standardError.write(Data("TheDrowningAgent failed: \(error)\n".utf8))
         }
     }
@@ -30,8 +31,8 @@ enum TheDrowningAgent {
 private enum SettingsReader {
     static func notifyRegions() -> Set<Region> {
         let defaults = UserDefaults(suiteName: AppGroup.identifier) ?? .standard
-        let values = defaults.stringArray(forKey: DrownedDefaultsKey.notifyRegions)
-        let regions = values?.map(Region.init(source:)).filter { $0 != .unknown } ?? []
+        let values = defaults.stringArray(forKey: DrownedDefaultsKey.notifyRegions) ?? []
+        let regions = values.map(Region.init(source:)).filter { $0 != .unknown }
         return regions.isEmpty ? [.mediterranean] : Set(regions)
     }
 }

@@ -9,26 +9,25 @@ name: TheDrowning
 options:
   bundleIdPrefix: com.panjas
   deploymentTarget:
-    macOS: "14.0"            # floor is 14: @Observable (Observation) + SMAppService(13+)
+    macOS: '14.0' # floor is 14: @Observable (Observation) + SMAppService(13+)
   createIntermediateGroups: true
   generateEmptyDirectories: true
 
 settings:
   base:
     DEVELOPMENT_TEAM: 8J2G689FCZ
-    SWIFT_VERSION: "6.0"
+    SWIFT_VERSION: '6.0'
     SWIFT_STRICT_CONCURRENCY: complete
-    ENABLE_HARDENED_RUNTIME: YES            # required for notarization
-    CODE_SIGN_STYLE: Automatic              # release: Manual + "Developer ID Application"
-    MARKETING_VERSION: "1.6.19"
-    CURRENT_PROJECT_VERSION: "40"
+    ENABLE_HARDENED_RUNTIME: YES # required for notarization
+    CODE_SIGN_STYLE: Automatic # release: Manual + "Developer ID Application"
+    MARKETING_VERSION: '1.6.21'
+    CURRENT_PROJECT_VERSION: '42'
 
 packages:
   DrownedCore:
     path: DrownedCore
 
 targets:
-
   # ---- main windowed app ------------------------------------------------
   TheDrowning:
     type: application
@@ -64,10 +63,10 @@ targets:
     info:
       path: App/TheDrowning/Info.plist
       properties:
-        LSMinimumSystemVersion: "14.0"
+        LSMinimumSystemVersion: '14.0'
         CFBundleURLTypes:
           - CFBundleURLName: com.panjas.thedrowning
-            CFBundleURLSchemes: [thedrowning]    # notification-tap deep link
+            CFBundleURLSchemes: [thedrowning] # notification-tap deep link
     # Copy the launchd plist alongside the embedded agent.
     copyFiles:
       - destination: wrapper
@@ -96,15 +95,15 @@ targets:
     info:
       path: App/TheDrowningAgent/Info.plist
       properties:
-        LSMinimumSystemVersion: "14.0"
-        LSUIElement: true     # agent: no Dock icon, can still post notifications
+        LSMinimumSystemVersion: '14.0'
+        LSUIElement: true # agent: no Dock icon, can still post notifications
 
 schemes:
   TheDrowning:
     build:
       targets: { TheDrowning: all }
     run: { config: Debug }
-  TheDrowningAgent:          # run this directly from Cursor to debug poll to notify logic
+  TheDrowningAgent: # run this directly from Cursor to debug poll to notify logic
     build:
       targets: { TheDrowningAgent: all }
     run: { config: Debug }

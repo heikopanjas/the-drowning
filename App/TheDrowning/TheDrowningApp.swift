@@ -17,10 +17,11 @@ struct TheDrowningApp: App {
         .handlesExternalEvents(matching: ["*"])
     }
 
-    private func registerAgent() {
+    private func registerAgent() -> Void {
         do {
             try SMAppService.agent(plistName: "com.panjas.thedrowning.agent.plist").register()
-        } catch {
+        }
+        catch {
             launchError = error.localizedDescription
         }
     }
@@ -34,7 +35,8 @@ private struct Root: View {
         Group {
             if let store {
                 TheDrowningRootView(store: store)
-            } else if let errorMessage {
+            }
+            else if let errorMessage {
                 ContentUnavailableView("The Drowning cannot start", systemImage: "exclamationmark.triangle")
                     .overlay(alignment: .bottom) {
                         Text(errorMessage)
@@ -42,13 +44,15 @@ private struct Root: View {
                             .foregroundStyle(.secondary)
                             .padding()
                     }
-            } else {
+            }
+            else {
                 ProgressView()
                     .controlSize(.large)
                     .task {
                         do {
                             store = try IncidentStore()
-                        } catch {
+                        }
+                        catch {
                             errorMessage = error.localizedDescription
                         }
                     }
