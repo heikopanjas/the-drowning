@@ -121,6 +121,9 @@ When initializing a session or analyzing the workspace, refer to instruction fil
 - The root layout contains `DrownedCore/` for the Swift package,
   `App/TheDrowning/` for the windowed app, `App/TheDrowningAgent/` for the
   LaunchAgent helper app, and `LaunchAgents/` for launchd plists.
+- The macOS app icon lives in
+  `App/TheDrowning/Assets.xcassets/AppIcon.appiconset`; keep generated icon
+  rasters in the asset catalog so Xcode can compile `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`.
 - Confine platform-specific APIs such as `SMAppService`, launchd, AppKit, and
   bundle wiring to the macOS app target, LaunchAgent helper, or map
   representable.
@@ -310,6 +313,16 @@ Automatically bump the project version after every code change and include it in
 
 ### 2026-06-15
 
+- Replaced the generated AppIcon rasters with the exported pre-Tahoe macOS icon
+  images from `~/Downloads/Icon Exports (pre Tahoe)`
+- Bumped `MARKETING_VERSION` to `1.6.33` and `CURRENT_PROJECT_VERSION` to `54`
+- Reasoning: the app icon asset catalog should use the prepared final icon
+  export set while preserving Xcode's standard macOS AppIcon slots
+- Added a generated macOS app icon asset catalog for The Drowning and populated
+  the standard AppIcon sizes from a 1024px source image
+- Bumped `MARKETING_VERSION` to `1.6.32` and `CURRENT_PROJECT_VERSION` to `53`
+- Reasoning: the app should ship with a project-local macOS icon asset compiled
+  by Xcode rather than relying on a missing or external icon resource
 - Added an XcodeGen-generated build script phase that copies
   `com.panjas.thedrowning.agent.plist` into
   `Contents/Library/LaunchAgents` alongside the embedded helper app

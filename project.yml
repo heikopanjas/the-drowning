@@ -20,8 +20,8 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     ENABLE_HARDENED_RUNTIME: YES # required for notarization
     CODE_SIGN_STYLE: Automatic # release: Manual + "Developer ID Application"
-    MARKETING_VERSION: '1.6.31'
-    CURRENT_PROJECT_VERSION: '52'
+    MARKETING_VERSION: '1.6.33'
+    CURRENT_PROJECT_VERSION: '54'
 
 packages:
   DrownedCore:
