@@ -20,8 +20,8 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     ENABLE_HARDENED_RUNTIME: YES # required for notarization
     CODE_SIGN_STYLE: Automatic # release: Manual + "Developer ID Application"
-    MARKETING_VERSION: '1.6.24'
-    CURRENT_PROJECT_VERSION: '45'
+    MARKETING_VERSION: '1.6.31'
+    CURRENT_PROJECT_VERSION: '52'
 
 packages:
   DrownedCore:
@@ -67,12 +67,17 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: com.panjas.thedrowning
             CFBundleURLSchemes: [thedrowning] # notification-tap deep link
-    # Copy the launchd plist alongside the embedded agent.
-    copyFiles:
-      - destination: wrapper
-        subpath: Contents/Library/LaunchAgents
-        files:
-          - LaunchAgents/com.panjas.thedrowning.agent.plist
+    postBuildScripts:
+      - name: Copy LaunchAgent Plist
+        script: |
+          set -euo pipefail
+          destination="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Library/LaunchAgents"
+          install -d "${destination}"
+          install -m 0644 "${SRCROOT}/LaunchAgents/com.panjas.thedrowning.agent.plist" "${destination}/com.panjas.thedrowning.agent.plist"
+        inputFiles:
+          - $(SRCROOT)/LaunchAgents/com.panjas.thedrowning.agent.plist
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/LaunchAgents/com.panjas.thedrowning.agent.plist
 
   # ---- headless LaunchAgent helper (LSUIElement app bundle) --------------
   TheDrowningAgent:
@@ -92,6 +97,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.panjas.thedrowning.agent
         CODE_SIGN_ENTITLEMENTS: App/TheDrowningAgent/TheDrowningAgent.entitlements
+        SKIP_INSTALL: YES
     info:
       path: App/TheDrowningAgent/Info.plist
       properties:

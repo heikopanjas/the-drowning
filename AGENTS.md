@@ -115,6 +115,9 @@ When initializing a session or analyzing the workspace, refer to instruction fil
 - The root Xcode project is generated from `project.yml` with
   `xcodegen generate`. Do not hand-edit `TheDrowning.xcodeproj` for settings that
   belong in the spec.
+- The root `build.sh` script builds the `TheDrowning` scheme from
+  `TheDrowning.xcodeproj`; debug products use `.build/Products`, and release
+  exports use the checked-in root `exportOptions.plist`.
 - The root layout contains `DrownedCore/` for the Swift package,
   `App/TheDrowning/` for the windowed app, `App/TheDrowningAgent/` for the
   LaunchAgent helper app, and `LaunchAgents/` for launchd plists.
@@ -124,6 +127,12 @@ When initializing a session or analyzing the workspace, refer to instruction fil
 - Use a standard windowed macOS app for the map and a separate signed
   `LSUIElement` helper app bundle registered as a LaunchAgent for background
   polling and notifications.
+- Keep the LaunchAgent helper target set to `SKIP_INSTALL=YES` so release
+  archives export one top-level app while still embedding the helper inside the
+  main app bundle.
+- Set the LaunchAgent plist `RunAtLoad` to `true` so the helper performs one
+  sync as soon as launchd loads it after registration, in addition to the daily
+  scheduled poll.
 - Store public incident data in plain SQLite, not SQLCipher. Use WAL mode and a
   GRDB `DatabasePool` so the helper can write while the UI reads.
 - Treat `web_id` as non-unique. Use a synthetic row identity based on `web_id`
@@ -301,6 +310,45 @@ Automatically bump the project version after every code change and include it in
 
 ### 2026-06-15
 
+- Added an XcodeGen-generated build script phase that copies
+  `com.panjas.thedrowning.agent.plist` into
+  `Contents/Library/LaunchAgents` alongside the embedded helper app
+- Bumped `MARKETING_VERSION` to `1.6.31` and `CURRENT_PROJECT_VERSION` to `52`
+- Reasoning: `SMAppService.agent(plistName:)` can only register the bundled
+  LaunchAgent if the plist is actually present in the app bundle
+- Enabled `RunAtLoad` for the bundled LaunchAgent plist
+- Bumped `MARKETING_VERSION` to `1.6.30` and `CURRENT_PROJECT_VERSION` to `51`
+- Reasoning: the helper should run once immediately after ServiceManagement
+  registration loads the LaunchAgent, then continue with the daily schedule
+- Renamed the checked-in Developer ID export options file from
+  `ExportOptions.plist` to `exportOptions.plist` and updated the release script
+  to use the new casing
+- Bumped `MARKETING_VERSION` to `1.6.29` and `CURRENT_PROJECT_VERSION` to `50`
+- Reasoning: release tooling should match the requested export options filename
+  while keeping notarization behavior unchanged
+- Switched the root `ExportOptions.plist` to automatic Developer ID export
+  settings after manual export failed without an installed matching Developer ID
+  provisioning profile
+- Bumped `MARKETING_VERSION` to `1.6.28` and `CURRENT_PROJECT_VERSION` to `49`
+- Reasoning: the project can export successfully through Xcode-managed Developer
+  ID signing, while manual export requires local profile installation outside
+  the repository
+- Switched the release build script to use the checked-in root
+  `ExportOptions.plist` for manual Developer ID export settings and corrected
+  its main app provisioning profile key to `com.panjas.thedrowning`
+- Bumped `MARKETING_VERSION` to `1.6.27` and `CURRENT_PROJECT_VERSION` to `48`
+- Reasoning: notarization should use the prepared signing/export configuration
+  rather than regenerating automatic export options under `.build`
+- Set the LaunchAgent helper target to `SKIP_INSTALL=YES` for archive exports
+- Bumped `MARKETING_VERSION` to `1.6.26` and `CURRENT_PROJECT_VERSION` to `47`
+- Reasoning: Xcode release export needs a single top-level app in the archive;
+  the helper should be embedded in the main app, not installed beside it
+- Adapted the root `build.sh` script for The Drowning's generated root Xcode
+  project, app name, scheme, build artifact paths, Developer ID export options,
+  and notarization profile naming
+- Bumped `MARKETING_VERSION` to `1.6.25` and `CURRENT_PROJECT_VERSION` to `46`
+- Reasoning: the copied build script should operate on this repository's actual
+  XcodeGen project layout and provide a repeatable local debug/release workflow
 - Refactored repeated sync completion, Missing Migrants date handling, SQL
   value-list queries, SwiftUI toolbar/filter/search widgets, map callout/detail
   views, display-coordinate spreading, map camera helpers, annotation metrics,
