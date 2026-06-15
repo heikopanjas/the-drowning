@@ -115,8 +115,9 @@ When initializing a session or analyzing the workspace, refer to instruction fil
 - The root Xcode project is generated from `project.yml` with
   `xcodegen generate`. Do not hand-edit `TheDrowning.xcodeproj` for settings that
   belong in the spec.
-- The root `build.sh` script builds the `TheDrowning` scheme from
-  `TheDrowning.xcodeproj`; debug products use `.build/Products`, and release
+- The root `build.sh` script generates `TheDrowning.xcodeproj` from
+  `project.yml` with XcodeGen when the project is missing, then builds the
+  `TheDrowning` scheme; debug products use `.build/Products`, and release
   exports use the checked-in root `exportOptions.plist`.
 - The root layout contains `DrownedCore/` for the Swift package,
   `App/TheDrowning/` for the windowed app, `App/TheDrowningAgent/` for the
@@ -313,6 +314,11 @@ Automatically bump the project version after every code change and include it in
 
 ### 2026-06-15
 
+- Updated `build.sh` to generate `TheDrowning.xcodeproj` from `project.yml`
+  with XcodeGen when the project is missing
+- Bumped `MARKETING_VERSION` to `1.6.34` and `CURRENT_PROJECT_VERSION` to `55`
+- Reasoning: freshly cloned repositories should be buildable with `build.sh`
+  without requiring a separate manual `xcodegen generate` step
 - Replaced the generated AppIcon rasters with the exported pre-Tahoe macOS icon
   images from `~/Downloads/Icon Exports (pre Tahoe)`
 - Bumped `MARKETING_VERSION` to `1.6.33` and `CURRENT_PROJECT_VERSION` to `54`

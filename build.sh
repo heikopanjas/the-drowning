@@ -130,8 +130,28 @@ require_project() {
         return 0
     fi
 
-    echo "Error: missing generated project: ${PROJECT}" >&2
-    echo "Regenerate it from ${PROJECT_SPEC} with: xcodegen generate" >&2
+    if [ ! -f "$PROJECT_SPEC" ]; then
+        echo "Error: missing XcodeGen project spec: ${PROJECT_SPEC}" >&2
+        exit 1
+    fi
+
+    if ! command -v xcodegen &>/dev/null; then
+        echo "Error: missing generated project: ${PROJECT}" >&2
+        echo "Install XcodeGen, then rerun this script to generate it from ${PROJECT_SPEC}." >&2
+        echo "  brew install xcodegen" >&2
+        exit 1
+    fi
+
+    echo "==> Generating Xcode project..."
+    xcodegen generate --spec "$PROJECT_SPEC" --project "$ROOT"
+    echo "    Project: ${PROJECT}"
+    echo ""
+
+    if [ -d "$PROJECT" ]; then
+        return 0
+    fi
+
+    echo "Error: XcodeGen completed but did not create ${PROJECT}" >&2
     exit 1
 }
 
