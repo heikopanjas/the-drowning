@@ -71,22 +71,13 @@ extension Incident {
 
 extension Date {
     static func missingMigrantsDate(_ string: String) throws -> Date {
-        guard let date = formatter.date(from: string) else {
+        guard let date = MissingMigrantsDate.storedDate(from: string) else {
             throw DatabaseError(message: "Invalid stored reportedDate: \(string)")
         }
         return date
     }
 
     var missingMigrantsDateString: String {
-        return Self.formatter.string(from: self)
+        return MissingMigrantsDate.storedString(from: self)
     }
-
-    private static let formatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
 }

@@ -10,8 +10,7 @@ enum TheDrowningAgent {
     static func main() async -> Void {
         do {
             let store = try IncidentStore()
-            let outcome = try await LocalPollingSync(store: store).sync()
-            UserDefaults.standard.set(outcome.completedAt, forKey: DrownedDefaultsKey.lastSyncAt)
+            let outcome = try await SyncSession(store: store).sync()
 
             let center = UNUserNotificationCenter.current()
             let settings = await center.notificationSettings()

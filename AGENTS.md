@@ -1,6 +1,6 @@
 # Project Instructions for AI Coding Agents
 
-**Last updated:** 2026-06-14
+**Last updated:** 2026-06-15
 
 <!-- {preamble} -->
 
@@ -298,6 +298,17 @@ Automatically bump the project version after every code change and include it in
 <!-- {changelog} -->
 
 ## Recent Updates & Decisions
+
+### 2026-06-15
+
+- Refactored repeated sync completion, Missing Migrants date handling, SQL
+  value-list queries, SwiftUI toolbar/filter/search widgets, map callout/detail
+  views, display-coordinate spreading, map camera helpers, annotation metrics,
+  and store-test fixtures into focused reusable types
+- Bumped `MARKETING_VERSION` to `1.6.24` and `CURRENT_PROJECT_VERSION` to `45`
+- Reasoning: the app, agent, core modules, and tests should share single sources
+  of truth for repeated behavior while preserving the local-store-first
+  architecture and existing map/detail behavior
 
 ### 2026-06-14
 

@@ -83,27 +83,25 @@ public actor IncidentStore {
     }
 
     public func availableRoutes(regions: Set<Region>) throws -> [String] {
-        return try dbPool.read { db in
-            var sql = "SELECT DISTINCT migrationRoute FROM incident WHERE migrationRoute IS NOT NULL AND migrationRoute != ''"
-            var arguments = StatementArguments()
-            if regions.isEmpty == false {
-                sql += " AND rawRegion IN (" + Array(repeating: "?", count: regions.count).joined(separator: ", ") + ")"
-                regions.sorted().forEach { arguments += [$0.rawValue] }
-            }
-            sql += " ORDER BY migrationRoute ASC"
-            return try String.fetchAll(db, sql: sql, arguments: arguments)
-        }
+        return try availableValues(column: "migrationRoute", regions: regions, excludesNull: true)
     }
 
     public func availableCauses(regions: Set<Region>) throws -> [String] {
+        return try availableValues(column: "causeOfDeath", regions: regions, excludesNull: false)
+    }
+
+    private func availableValues(column: String, regions: Set<Region>, excludesNull: Bool) throws -> [String] {
         return try dbPool.read { db in
-            var sql = "SELECT DISTINCT causeOfDeath FROM incident WHERE causeOfDeath != ''"
+            var predicates = ["\(column) != ''"]
             var arguments = StatementArguments()
+            if excludesNull == true {
+                predicates.insert("\(column) IS NOT NULL", at: 0)
+            }
             if regions.isEmpty == false {
-                sql += " AND rawRegion IN (" + Array(repeating: "?", count: regions.count).joined(separator: ", ") + ")"
+                predicates.append("rawRegion IN \(Self.placeholders(regions.count))")
                 regions.sorted().forEach { arguments += [$0.rawValue] }
             }
-            sql += " ORDER BY causeOfDeath ASC"
+            let sql = "SELECT DISTINCT \(column) FROM incident WHERE \(predicates.joined(separator: " AND ")) ORDER BY \(column) ASC"
             return try String.fetchAll(db, sql: sql, arguments: arguments)
         }
     }
@@ -163,6 +161,10 @@ public actor IncidentStore {
             :contentHash
         )
         """
+
+    private static func placeholders(_ count: Int) -> String {
+        return "(" + Array(repeating: "?", count: count).joined(separator: ", ") + ")"
+    }
 }
 
 private struct IncidentIdentity {

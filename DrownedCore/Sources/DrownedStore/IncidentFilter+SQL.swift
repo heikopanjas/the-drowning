@@ -34,7 +34,7 @@ extension IncidentFilter {
             return region != .unknown
         }
         if concreteRegions.isEmpty == false {
-            predicates.append("rawRegion IN \(regionPlaceholders(concreteRegions.count))")
+            predicates.append("rawRegion IN \(Self.placeholders(concreteRegions.count))")
             concreteRegions.sorted().forEach { arguments += [$0.rawValue] }
         }
         else if regions == [.unknown] {
@@ -43,7 +43,7 @@ extension IncidentFilter {
         }
 
         if routes.isEmpty == false {
-            predicates.append("migrationRoute IN \(regionPlaceholders(routes.count))")
+            predicates.append("migrationRoute IN \(Self.placeholders(routes.count))")
             routes.sorted().forEach { arguments += [$0] }
         }
 
@@ -58,7 +58,7 @@ extension IncidentFilter {
         }
 
         if causes.isEmpty == false {
-            predicates.append("causeOfDeath IN \(regionPlaceholders(causes.count))")
+            predicates.append("causeOfDeath IN \(Self.placeholders(causes.count))")
             causes.sorted().forEach { arguments += [$0] }
         }
 
@@ -83,7 +83,7 @@ extension IncidentFilter {
         return IncidentSQL(whereClause: whereClause, arguments: arguments)
     }
 
-    private func regionPlaceholders(_ count: Int) -> String {
+    private static func placeholders(_ count: Int) -> String {
         return "(" + Array(repeating: "?", count: count).joined(separator: ", ") + ")"
     }
 }

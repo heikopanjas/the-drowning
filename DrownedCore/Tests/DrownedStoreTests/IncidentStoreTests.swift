@@ -6,8 +6,12 @@ import Testing
 struct IncidentStoreTests {
     @Test("replaceAll dedupes identical incident identities and filters mappable rows")
     func replaceAllAndFilter() async throws -> Void {
-        let store = try IncidentStore(url: temporaryDatabaseURL())
-        let incidents = [incident(webID: "a", latitude: 1, longitude: 2), incident(webID: "a", latitude: 1, longitude: 2), incident(webID: "b")]
+        let store = try IncidentStore(url: IncidentTestFactory.temporaryDatabaseURL())
+        let incidents = [
+            IncidentTestFactory.incident(webID: "a", latitude: 1, longitude: 2),
+            IncidentTestFactory.incident(webID: "a", latitude: 1, longitude: 2),
+            IncidentTestFactory.incident(webID: "b")
+        ]
 
         try await store.replaceAll(incidents)
 
@@ -20,11 +24,11 @@ struct IncidentStoreTests {
 
     @Test("map annotation fetch is limited while count remains complete")
     func limitedMapAnnotationFetch() async throws -> Void {
-        let store = try IncidentStore(url: temporaryDatabaseURL())
+        let store = try IncidentStore(url: IncidentTestFactory.temporaryDatabaseURL())
         try await store.replaceAll([
-            incident(webID: "a", latitude: 1, longitude: 2),
-            incident(webID: "b", latitude: 3, longitude: 4),
-            incident(webID: "c", latitude: 5, longitude: 6)
+            IncidentTestFactory.incident(webID: "a", latitude: 1, longitude: 2),
+            IncidentTestFactory.incident(webID: "b", latitude: 3, longitude: 4),
+            IncidentTestFactory.incident(webID: "c", latitude: 5, longitude: 6)
         ])
 
         let filter = IncidentFilter(regions: [], mappableOnly: true)
@@ -39,11 +43,11 @@ struct IncidentStoreTests {
 
     @Test("map annotation fetch can be constrained to visible coordinate bounds")
     func boundedMapAnnotationFetch() async throws -> Void {
-        let store = try IncidentStore(url: temporaryDatabaseURL())
+        let store = try IncidentStore(url: IncidentTestFactory.temporaryDatabaseURL())
         try await store.replaceAll([
-            incident(webID: "a", latitude: 1, longitude: 2),
-            incident(webID: "b", latitude: 40, longitude: 4),
-            incident(webID: "c", latitude: 5, longitude: 80)
+            IncidentTestFactory.incident(webID: "a", latitude: 1, longitude: 2),
+            IncidentTestFactory.incident(webID: "b", latitude: 40, longitude: 4),
+            IncidentTestFactory.incident(webID: "c", latitude: 5, longitude: 80)
         ])
 
         let filter = IncidentFilter(regions: [], mappableOnly: true)
@@ -66,12 +70,12 @@ struct IncidentStoreTests {
 
     @Test("limited map annotation fetch keeps the deadliest visible incidents")
     func limitedMapAnnotationFetchKeepsDeadliestIncidents() async throws -> Void {
-        let store = try IncidentStore(url: temporaryDatabaseURL())
+        let store = try IncidentStore(url: IncidentTestFactory.temporaryDatabaseURL())
         try await store.replaceAll([
-            incident(webID: "low", latitude: 1, longitude: 1, totalDeadAndMissing: 2),
-            incident(webID: "high", latitude: 2, longitude: 2, totalDeadAndMissing: 30),
-            incident(webID: "medium", latitude: 3, longitude: 3, totalDeadAndMissing: 12),
-            incident(webID: "outside", latitude: 40, longitude: 40, totalDeadAndMissing: 200)
+            IncidentTestFactory.incident(webID: "low", latitude: 1, longitude: 1, totalDeadAndMissing: 2),
+            IncidentTestFactory.incident(webID: "high", latitude: 2, longitude: 2, totalDeadAndMissing: 30),
+            IncidentTestFactory.incident(webID: "medium", latitude: 3, longitude: 3, totalDeadAndMissing: 12),
+            IncidentTestFactory.incident(webID: "outside", latitude: 40, longitude: 40, totalDeadAndMissing: 200)
         ])
 
         let filter = IncidentFilter(regions: [], mappableOnly: true)
@@ -90,69 +94,22 @@ struct IncidentStoreTests {
 
     @Test("seen web ids survive a full replace")
     func seenIDsSurviveReplace() async throws -> Void {
-        let store = try IncidentStore(url: temporaryDatabaseURL())
+        let store = try IncidentStore(url: IncidentTestFactory.temporaryDatabaseURL())
         try await store.markSeen(["a"])
-        try await store.replaceAll([incident(webID: "b")])
+        try await store.replaceAll([IncidentTestFactory.incident(webID: "b")])
 
         #expect(try await store.seenWebIDs() == ["a"])
     }
 
     @Test("fetch incident resolves full record by compound id")
     func fetchIncidentByID() async throws -> Void {
-        let store = try IncidentStore(url: temporaryDatabaseURL())
-        let expected = incident(webID: "a", latitude: 1, longitude: 2)
-        try await store.replaceAll([expected, incident(webID: "b")])
+        let store = try IncidentStore(url: IncidentTestFactory.temporaryDatabaseURL())
+        let expected = IncidentTestFactory.incident(webID: "a", latitude: 1, longitude: 2)
+        try await store.replaceAll([expected, IncidentTestFactory.incident(webID: "b")])
 
         let fetched = try await store.fetchIncident(id: expected.id)
 
         #expect(fetched == expected)
         #expect(try await store.fetchIncident(id: "not-a-valid-id") == nil)
-    }
-
-    private func temporaryDatabaseURL() -> URL {
-        return FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-            .appendingPathComponent("drowned.sqlite")
-    }
-
-    private func incident(
-        webID: String,
-        latitude: Double? = nil,
-        longitude: Double? = nil,
-        totalDeadAndMissing: Int = 1
-    ) -> Incident {
-        return Incident(
-            webID: webID,
-            region: .mediterranean,
-            reportedDate: Date(timeIntervalSince1970: 1_704_153_600),
-            numberDead: 1,
-            numberMissing: nil,
-            totalDeadAndMissing: totalDeadAndMissing,
-            numberOfSurvivors: nil,
-            numberOfFemale: nil,
-            numberOfMale: nil,
-            numberOfChildren: nil,
-            causeOfDeath: "Drowning",
-            countryOfIncident: "Italy",
-            locationDescription: "At sea",
-            unsdGeographicGrouping: "Southern Europe",
-            latitude: latitude,
-            longitude: longitude,
-            migrationRoute: "Central Mediterranean",
-            informationSource: "IOM",
-            sourceURL: nil,
-            sourceQuality: 4,
-            regionOrigin: "Africa",
-            countryOrigin: nil,
-            contentHash: webID.stableHashValue
-        )
-    }
-}
-
-extension String {
-    fileprivate var stableHashValue: Int64 {
-        return unicodeScalars.reduce(Int64(0)) { hash, scalar in
-            return hash &* 31 &+ Int64(scalar.value)
-        }
     }
 }

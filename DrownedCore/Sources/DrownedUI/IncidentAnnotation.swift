@@ -21,9 +21,6 @@ final class IncidentAnnotation: NSObject, MKAnnotation {
 }
 
 final class IncidentAnnotationView: MKAnnotationView {
-    private static let diameter: CGFloat = 24
-    private static let symbolSize: CGFloat = 13
-
     private let symbolView = NSImageView()
 
     override init(annotation: (any MKAnnotation)?, reuseIdentifier: String?) {
@@ -39,8 +36,8 @@ final class IncidentAnnotationView: MKAnnotationView {
     override var annotation: MKAnnotation? {
         didSet {
             guard annotation is IncidentAnnotation else { return }
-            frame.size = NSSize(width: Self.diameter, height: Self.diameter)
-            centerOffset = CGPoint(x: 0, y: -12)
+            frame.size = NSSize(width: MapAnnotationMetrics.incidentDiameter, height: MapAnnotationMetrics.incidentDiameter)
+            centerOffset = MapAnnotationMetrics.incidentCenterOffset
             collisionMode = .circle
             displayPriority = .defaultHigh
             canShowCallout = false
@@ -52,24 +49,24 @@ final class IncidentAnnotationView: MKAnnotationView {
         super.layout()
         layer?.cornerRadius = bounds.width / 2
         symbolView.frame = NSRect(
-            x: (bounds.width - Self.symbolSize) / 2,
-            y: (bounds.height - Self.symbolSize) / 2,
-            width: Self.symbolSize,
-            height: Self.symbolSize
+            x: (bounds.width - MapAnnotationMetrics.incidentSymbolSize) / 2,
+            y: (bounds.height - MapAnnotationMetrics.incidentSymbolSize) / 2,
+            width: MapAnnotationMetrics.incidentSymbolSize,
+            height: MapAnnotationMetrics.incidentSymbolSize
         )
     }
 
     private func configure() -> Void {
-        frame.size = NSSize(width: Self.diameter, height: Self.diameter)
+        frame.size = NSSize(width: MapAnnotationMetrics.incidentDiameter, height: MapAnnotationMetrics.incidentDiameter)
         wantsLayer = true
         layer?.backgroundColor = NSColor.black.cgColor
-        layer?.cornerRadius = Self.diameter / 2
+        layer?.cornerRadius = MapAnnotationMetrics.incidentDiameter / 2
         layer?.masksToBounds = true
 
         symbolView.image = NSImage(
             systemSymbolName: "person.fill",
             accessibilityDescription: nil
-        )?.withSymbolConfiguration(.init(pointSize: Self.symbolSize, weight: .semibold))
+        )?.withSymbolConfiguration(.init(pointSize: MapAnnotationMetrics.incidentSymbolSize, weight: .semibold))
         symbolView.contentTintColor = .white
         symbolView.imageScaling = .scaleProportionallyDown
         addSubview(symbolView)
@@ -93,8 +90,8 @@ final class IncidentClusterAnnotationView: MKAnnotationView {
         let incidentCount = cluster.memberAnnotations.compactMap { annotation in
             return annotation as? IncidentAnnotation
         }.count
-        image = MapAnnotationImage.circle(diameter: 32, text: incidentCount.formatted())
-        centerOffset = CGPoint(x: 0, y: -16)
+        image = MapAnnotationImage.circle(diameter: MapAnnotationMetrics.clusterDiameter, text: incidentCount.formatted())
+        centerOffset = MapAnnotationMetrics.clusterCenterOffset
         collisionMode = .circle
         displayPriority = .required
         canShowCallout = false

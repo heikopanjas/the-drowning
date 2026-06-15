@@ -262,12 +262,10 @@ private struct CSVIncidentFields {
 
     private func date(_ column: CSVColumn) throws -> Date {
         let value = trimmed(column)
-        for formatter in DateFormatter.missingMigrantsDateFormatters {
-            if let date = formatter.date(from: value) {
-                return date
-            }
+        guard let date = MissingMigrantsDate.importedDate(from: value) else {
+            throw IncidentCSVParserError.invalidDate(value)
         }
-        throw IncidentCSVParserError.invalidDate(value)
+        return date
     }
 }
 
@@ -400,22 +398,6 @@ private enum StableHasher {
             hash = hash &* 0x100_0000_01b3
         }
         return Int64(bitPattern: hash)
-    }
-}
-
-extension DateFormatter {
-    fileprivate static let missingMigrantsDateFormatters: [DateFormatter] = [
-        makeMissingMigrantsDateFormatter("yyyy-MM-dd"),
-        makeMissingMigrantsDateFormatter("EEE, MM/dd/yyyy - HH:mm")
-    ]
-
-    fileprivate static func makeMissingMigrantsDateFormatter(_ dateFormat: String) -> DateFormatter {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = dateFormat
-        return formatter
     }
 }
 
