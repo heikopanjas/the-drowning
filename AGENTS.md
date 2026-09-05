@@ -1,6 +1,6 @@
 # Project Instructions for AI Coding Agents
 
-**Last updated:** 2026-06-15
+**Last updated:** 2026-09-05
 
 <!-- {preamble} -->
 
@@ -118,7 +118,14 @@ When initializing a session or analyzing the workspace, refer to instruction fil
 - The root `build.sh` script generates `TheDrowning.xcodeproj` from
   `project.yml` with XcodeGen when the project is missing, then builds the
   `TheDrowning` scheme; debug products use `.build/Products`, and release
-  exports use the checked-in root `exportOptions.plist`.
+  exports use the checked-in root `exportOptions.plist`. Configure Xcode's
+  custom workspace-relative build locations as `.build/Products` and
+  `.build/Intermediates`; the script passes `.build` as its derived-data path,
+  keeping products, intermediates, derived data, and Swift package artifacts
+  together without project-level `SYMROOT` or `OBJROOT` settings. Debug clean
+  and build commands disable code signing so they work without a local Mac
+  Development certificate; release builds use manual Developer ID Application
+  signing and archive/export commands retain signing.
 - The root layout contains `DrownedCore/` for the Swift package,
   `App/TheDrowning/` for the windowed app, `App/TheDrowningAgent/` for the
   LaunchAgent helper app, and `LaunchAgents/` for launchd plists.
@@ -311,6 +318,31 @@ Automatically bump the project version after every code change and include it in
 <!-- {changelog} -->
 
 ## Recent Updates & Decisions
+
+### 2026-09-05
+
+- Configured Release builds for manual Developer ID Application signing and
+  added macOS application categories for the main app and helper bundle
+- Bumped `MARKETING_VERSION` to `1.6.38` and `CURRENT_PROJECT_VERSION` to `59`
+- Reasoning: archives must use the installed Developer ID identity instead of
+  seeking a Mac Development certificate, and both bundles need category metadata
+
+- Disabled code signing for `build.sh` debug clean/build commands while
+  preserving release archive/export signing
+- Bumped `MARKETING_VERSION` to `1.6.37` and `CURRENT_PROJECT_VERSION` to `58`
+- Reasoning: local debug builds must not require the team’s private Mac
+  Development certificate, while distributable builds still require signing
+
+- Configured Xcode's workspace-relative product and intermediate locations and
+  debug/release tooling to use the root `.build/` directory
+- Bumped `MARKETING_VERSION` to `1.6.36` and `CURRENT_PROJECT_VERSION` to `57`
+- Reasoning: all generated target artifacts should stay in one ignored location
+  while project build settings remain compatible with Swift package builds
+
+- Added the main app's AppIcon asset catalog to the LaunchAgent helper target
+- Bumped `MARKETING_VERSION` to `1.6.35` and `CURRENT_PROJECT_VERSION` to `56`
+- Reasoning: the helper app bundle should carry the same branded icon instead
+  of declaring an AppIcon setting without compiling the shared asset catalog
 
 ### 2026-06-15
 

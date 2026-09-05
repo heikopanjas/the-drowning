@@ -19,9 +19,13 @@ settings:
     SWIFT_VERSION: '6.0'
     SWIFT_STRICT_CONCURRENCY: complete
     ENABLE_HARDENED_RUNTIME: YES # required for notarization
-    CODE_SIGN_STYLE: Automatic # release: Manual + "Developer ID Application"
-    MARKETING_VERSION: '1.6.34'
-    CURRENT_PROJECT_VERSION: '55'
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: '1.6.38'
+    CURRENT_PROJECT_VERSION: '59'
+  configs:
+    Release:
+      CODE_SIGN_STYLE: Manual
+      CODE_SIGN_IDENTITY: Developer ID Application
 
 packages:
   DrownedCore:
@@ -64,6 +68,7 @@ targets:
       path: App/TheDrowning/Info.plist
       properties:
         LSMinimumSystemVersion: '14.0'
+        LSApplicationCategoryType: public.app-category.reference
         CFBundleURLTypes:
           - CFBundleURLName: com.panjas.thedrowning
             CFBundleURLSchemes: [thedrowning] # notification-tap deep link
@@ -83,7 +88,9 @@ targets:
   TheDrowningAgent:
     type: application
     platform: macOS
-    sources: [App/TheDrowningAgent]
+    sources:
+      - App/TheDrowningAgent
+      - App/TheDrowning/Assets.xcassets
     dependencies:
       - package: DrownedCore
         product: DrownedSync
@@ -102,6 +109,7 @@ targets:
       path: App/TheDrowningAgent/Info.plist
       properties:
         LSMinimumSystemVersion: '14.0'
+        LSApplicationCategoryType: public.app-category.utilities
         LSUIElement: true # agent: no Dock icon, can still post notifications
 
 schemes:

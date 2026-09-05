@@ -8,7 +8,7 @@ SCHEME="TheDrowning"
 APP_NAME="The Drowning"
 ARCHIVE_NAME="TheDrowning"
 BUILD_DIR="${ROOT}/.build"
-DERIVED_DATA="${BUILD_DIR}/DerivedData"
+DERIVED_DATA="${BUILD_DIR}"
 DEBUG_APP="${BUILD_DIR}/Products/Debug/${APP_NAME}.app"
 ARCHIVE_PATH="${BUILD_DIR}/${ARCHIVE_NAME}.xcarchive"
 EXPORT_PATH="${BUILD_DIR}/export"
@@ -209,6 +209,7 @@ build_debug() {
             -configuration Debug \
             -destination "$DEBUG_DESTINATION" \
             -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO \
             clean -quiet
         echo "    Done."
         echo ""
@@ -221,6 +222,7 @@ build_debug() {
         -configuration Debug \
         -destination "$DEBUG_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA" \
+        CODE_SIGNING_ALLOWED=NO \
         build -quiet
     echo "    App: ${DEBUG_APP}"
     echo ""
@@ -236,6 +238,7 @@ build_release() {
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -destination "$RELEASE_DESTINATION" \
+            -derivedDataPath "$DERIVED_DATA" \
             clean -quiet
         rm -rf "$ARCHIVE_PATH" "$EXPORT_PATH" "$ZIP_PATH"
         echo "    Done."
@@ -250,6 +253,7 @@ build_release() {
         -scheme "$SCHEME" \
         -configuration Release \
         -destination "$RELEASE_DESTINATION" \
+        -derivedDataPath "$DERIVED_DATA" \
         -archivePath "$ARCHIVE_PATH" \
         -quiet
     echo "    Archive: ${ARCHIVE_PATH}"
