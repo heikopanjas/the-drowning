@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lineLength": 187,
+  "lineLength": 147,
   "indentation": {
     "spaces": 4
   },
@@ -11,7 +11,6 @@
   "lineBreakBeforeControlFlowKeywords": true,
   "lineBreakBeforeEachArgument": false,
   "lineBreakBeforeEachGenericRequirement": false,
-  "lineBreakBetweenDeclarationAttributes": false,
   "prioritizeKeepingFunctionOutputTogether": true,
   "indentConditionalCompilationBlocks": false,
   "lineBreakAroundMultilineExpressionChainComponents": false,
@@ -26,19 +25,11 @@
     ]
   },
   "multiElementCollectionTrailingCommas": false,
-  "multilineTrailingCommaBehavior": "neverUsed",
-  "reflowMultilineStringLiterals": "never",
-  "indentBlankLines": false,
-  "orderedImports": {
-    "includeConditionalImports": true,
-    "shouldGroupImports": true
-  },
   "rules": {
     "AllPublicDeclarationsHaveDocumentation": false,
     "AlwaysUseLiteralForEmptyCollectionInit": true,
     "AlwaysUseLowerCamelCase": true,
     "AmbiguousTrailingClosureOverload": true,
-    "AvoidRetroactiveConformances": true,
     "BeginDocumentationCommentWithOneLineSummary": false,
     "DoNotUseSemicolons": true,
     "DontRepeatTypeInStaticProperties": true,
@@ -53,7 +44,6 @@
     "NoAssignmentInExpressions": true,
     "NoBlockComments": true,
     "NoCasesWithOnlyFallthrough": true,
-    "NoEmptyLinesOpeningClosingBraces": true,
     "NoEmptyTrailingClosureParentheses": true,
     "NoLabelsInCasePatterns": true,
     "NoLeadingUnderscores": true,
@@ -65,13 +55,13 @@
     "OneVariableDeclarationPerLine": true,
     "OnlyOneTrailingClosureArgument": true,
     "OrderedImports": true,
-    "ReplaceForEachWithForLoop": false,
+    "ReplaceForEachWithForLoop": true,
     "ReturnVoidInsteadOfEmptyTuple": true,
     "TypeNamesShouldBeCapitalized": true,
     "UseEarlyExits": false,
-    "UseExplicitNilCheckInConditions": true,
+    "UseExplicitNilCheckInConditions": false,
     "UseLetInEveryBoundCaseVariable": false,
-    "UseShorthandTypeNames": false,
+    "UseShorthandTypeNames": true,
     "UseSingleLinePropertyGetter": true,
     "UseSynthesizedInitializer": true,
     "UseTripleSlashForDocumentationComments": true,
