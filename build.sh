@@ -13,11 +13,10 @@ DEBUG_APP="${BUILD_DIR}/Products/Debug/${APP_NAME}.app"
 ARCHIVE_PATH="${BUILD_DIR}/${ARCHIVE_NAME}.xcarchive"
 EXPORT_PATH="${BUILD_DIR}/export"
 EXPORT_PLIST="${ROOT}/exportOptions.plist"
-NOTARIZE_PROFILE="${NOTARIZE_PROFILE:-TheDrowning-Notarize}"
+NOTARIZE_PROFILE="${NOTARIZE_PROFILE:-Panjas-Notarize}"
 BUILD_ARCH="arm64"
 DEBUG_DESTINATION="platform=macOS,arch=${BUILD_ARCH}"
 RELEASE_DESTINATION="generic/platform=macOS"
-TEAM_ID="8J2G689FCZ"
 ZIP_PATH="${BUILD_DIR}/${ARCHIVE_NAME}.zip"
 
 RELEASE=false
@@ -52,12 +51,14 @@ Release builds use this Developer ID export options plist:
     ${EXPORT_PLIST}
 
 Notarization (--notarize) requires a notarytool Keychain profile (default: ${NOTARIZE_PROFILE}).
-Create it once with an app-specific password from account.apple.com:
+The shared profile uses an App Store Connect API key. To create it once:
 
     xcrun notarytool store-credentials "${NOTARIZE_PROFILE}" \\
-      --apple-id "you@example.com" \\
-      --team-id ${TEAM_ID} \\
-      --password "xxxx-xxxx-xxxx-xxxx"
+      --key "/path/to/AuthKey_KEY_ID.p8" \\
+      --key-id "KEY_ID" \\
+      --issuer "ISSUER_ID"
+
+Omit --issuer for an individual API key.
 
 Override profile name: NOTARIZE_PROFILE=my-profile $(basename "$0") --release --notarize
 EOF
@@ -191,11 +192,11 @@ check_notary_profile() {
     echo "" >&2
     echo "Create credentials (one-time):" >&2
     echo "  xcrun notarytool store-credentials \"${NOTARIZE_PROFILE}\" \\" >&2
-    echo "    --apple-id \"YOUR_APPLE_ID\" \\" >&2
-    echo "    --team-id ${TEAM_ID} \\" >&2
-    echo "    --password \"APP_SPECIFIC_PASSWORD\"" >&2
+    echo "    --key \"/path/to/AuthKey_KEY_ID.p8\" \\" >&2
+    echo "    --key-id \"KEY_ID\" \\" >&2
+    echo "    --issuer \"ISSUER_ID\"" >&2
     echo "" >&2
-    echo "App-specific password: https://account.apple.com/account/manage" >&2
+    echo "Omit --issuer for an individual API key." >&2
     echo "Or set NOTARIZE_PROFILE to an existing profile name." >&2
     return 1
 }

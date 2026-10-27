@@ -4,6 +4,13 @@ This file is the append-only log of project decisions and notable changes, maint
 
 <!-- {changelog} -->
 
+### 2026-10-27 (v1.6.39, shared notarization profile)
+
+- changed build.sh to default to the shared Panjas-Notarize keychain profile
+- updated credential setup guidance to use an app store connect api key
+- rationale: reuse the general notarization profile across apps while retaining the environment override
+- version bump: 1.6.38 to 1.6.39 (PATCH - notarization configuration correction)
+
 ### 2026-09-05 (v1.6.38, 14:25 CEST, consolidate decision history)
 
 - moved the remaining history from AGENTS.md into UPDATES.md, preserving original entries and existing overlapping records

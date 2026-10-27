@@ -1,6 +1,6 @@
 # Project Instructions for AI Coding Agents
 
-**Last updated:** 2026-09-05
+**Last updated:** 2026-10-27
 
 <!-- {preamble} -->
 
@@ -131,6 +131,10 @@ When initializing a session or analyzing the workspace, refer to instruction fil
 - The root layout contains `DrownedCore/` for the Swift package,
   `App/TheDrowning/` for the windowed app, `App/TheDrowningAgent/` for the
   LaunchAgent helper app, and `LaunchAgents/` for launchd plists.
+- Notarization in `build.sh` defaults to the shared `Panjas-Notarize`
+  notarytool Keychain profile backed by an App Store Connect API key. Keep
+  `NOTARIZE_PROFILE` available as an environment override and keep API keys
+  outside the repository.
 - The macOS app icon lives in
   `App/TheDrowning/Assets.xcassets/AppIcon.appiconset`; keep generated icon
   rasters in the asset catalog so Xcode can compile `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`.

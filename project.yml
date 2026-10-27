@@ -20,8 +20,8 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     ENABLE_HARDENED_RUNTIME: YES # required for notarization
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: '1.6.38'
-    CURRENT_PROJECT_VERSION: '59'
+    MARKETING_VERSION: '1.6.39'
+    CURRENT_PROJECT_VERSION: '60'
   configs:
     Release:
       CODE_SIGN_STYLE: Manual
